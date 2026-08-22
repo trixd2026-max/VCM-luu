@@ -1,0 +1,54 @@
+{
+  "url": "http://127.0.0.1:8081/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Vườn Của Mít — Trái cây vườn, giỏ quà, tráp cưới hỏi",
+      "hasCanvas": false,
+      "bodyTextLen": 1957,
+      "bodyTextHash": "c2cf2360ec803b0d3cbd4c50159e4d6dc8317ce1cb128b96975f6d1eaa6271e4",
+      "bodyTextPrefix": "Đặt giỏ từ 300.000đ · Gọi Chị Hằng 0345 662 166 Vườn Của MítTrái",
+      "horizontalOverflow": false,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 ()",
+        "Failed to load resource: the server responded with a status of 404 ()",
+        "Failed to load resource: the server responded with a status of 404 ()",
+        "Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-built.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Vườn Của Mít — Trái cây vườn, giỏ quà, tráp cưới hỏi",
+      "hasCanvas": false,
+      "bodyTextLen": 1957,
+      "bodyTextHash": "c2cf2360ec803b0d3cbd4c50159e4d6dc8317ce1cb128b96975f6d1eaa6271e4",
+      "bodyTextPrefix": "Đặt giỏ từ 300.000đ · Gọi Chị Hằng 0345 662 166 Vườn Của MítTrái",
+      "horizontalOverflow": true,
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 ()",
+        "Failed to load resource: the server responded with a status of 404 ()",
+        "Failed to load resource: the server responded with a status of 404 ()",
+        "Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-built-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-built.json",
+  "divergesFromBaseline": true,
+  "baselineReasons": [
+    "desktop: console/page errors appeared (4)",
+    "desktop: body text replaced (similar length, page start changed)",
+    "mobile: horizontal overflow appeared",
+    "mobile: console/page errors appeared (4)",
+    "mobile: body text replaced (similar length, page start changed)"
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Vườn Của Mít — Trái cây vườn, giỏ quà, tráp cưới hỏi",
+      "hasCanvas": false,
+      "bodyTextLen": 1928,
+      "bodyTextHash": "3a697bc68d04ba68ee6e6d1030fa4fb9c56e9f671cdce089d2d925063a822efb",
+      "bodyTextPrefix": "Đặt giỏ từ 300.000đ · Gọi Chị Hằng 0345 662 166 Vườn Của Mít Trá",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Vườn Của Mít — Trái cây vườn, giỏ quà, tráp cưới hỏi",
+      "hasCanvas": false,
+      "bodyTextLen": 1869,
+      "bodyTextHash": "fdcb393bcfa900a47eded0a538ebf8b883079fe4f97ba312a1e474b3eb2f9700",
+      "bodyTextPrefix": "Đặt giỏ từ 300.000đ · Gọi Chị Hằng 0345 662 166 Vườn Của Mít THÔ",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-preview.json"
+}

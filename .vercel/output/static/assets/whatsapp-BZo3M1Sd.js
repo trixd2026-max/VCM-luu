@@ -1,0 +1,3 @@
+import{i as e,t}from"./format-BDkm-pUM.js";import{f as n}from"./index-BCAQto50.js";function r(r){let i=r.lines.map(e=>{let n=e.note?` (${e.note})`:``;return`- ${e.qty} ${e.unit} ${e.name}${n}: ${t(e.price*e.qty)}`}).join(`
+`),a=t(e(r.lines));return[`Xin chào ${n.name},`,`Em muốn đặt đơn ${r.orderId}:`,``,i,``,`Tổng: ${a}`,`Tên: ${r.name}`,`SĐT: ${r.phone}`,r.address?`Địa chỉ: ${r.address}`:``,r.note?`Ghi chú: ${r.note}`:``].filter(Boolean).join(`
+`)}function i(e){return`${n.whatsapp}?text=${encodeURIComponent(e)}`}export{i as n,r as t};

@@ -1,0 +1,95 @@
+@import url("https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&display=swap");
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme {
+  --font-sans: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Fraunces", "Times New Roman", serif;
+
+  --color-background: #f3eee4;
+  --color-foreground: #1c261f;
+  --color-card: #faf7f1;
+  --color-card-foreground: #1c261f;
+  --color-popover: #faf7f1;
+  --color-popover-foreground: #1c261f;
+  --color-primary: #2c5340;
+  --color-primary-foreground: #f6f1e8;
+  --color-secondary: #e8e2d6;
+  --color-secondary-foreground: #1c261f;
+  --color-muted: #e7e1d4;
+  --color-muted-foreground: #5c675f;
+  --color-accent: #3d6b52;
+  --color-accent-foreground: #f6f1e8;
+  --color-destructive: #8f3d33;
+  --color-destructive-foreground: #faf7f1;
+  --color-border: #d5cec0;
+  --color-input: #d5cec0;
+  --color-ring: #2c5340;
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.75rem;
+  --aspect-portrait: 4/5;
+  --aspect-wide: 16/9;
+
+  --shadow-border:
+    0px 0px 0px 1px rgba(28, 38, 31, 0.07),
+    0px 1px 2px -1px rgba(28, 38, 31, 0.06),
+    0px 8px 24px -12px rgba(28, 38, 31, 0.12);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html,
+  body,
+  #app {
+    min-height: 100%;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+    font-family: var(--font-display);
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  img {
+    outline: 1px solid rgba(28, 38, 31, 0.1);
+    outline-offset: -1px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
