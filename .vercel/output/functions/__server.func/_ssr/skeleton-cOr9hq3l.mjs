@@ -1,5 +1,5 @@
 import { S as require_jsx_runtime } from "../_libs/@tanstack/react-router+[...].mjs";
-import { b as cn } from "./router-CmyOnWoO.mjs";
+import { x as cn } from "./router-8HaLVA_X.mjs";
 //#region node_modules/.nitro/vite/services/ssr/assets/skeleton-cOr9hq3l.js
 var import_jsx_runtime = require_jsx_runtime();
 function Skeleton({ className, ...props }) {

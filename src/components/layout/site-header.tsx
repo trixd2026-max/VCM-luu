@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Menu, Phone, ShoppingBag, X } from "lucide-react";
+import { Menu, ShoppingBag, X } from "lucide-react";
 import { SHOP } from "@/lib/shop";
 import { useCart, cartCount } from "@/lib/cart";
 import { useHydrated } from "@/hooks/use-hydrated";
 import { cn } from "@/lib/utils";
 import { CartDrawer } from "@/components/cart-drawer";
+import { ZaloMark } from "@/components/zalo-icon";
 
 const NAV = [
   { to: "/cua-hang", label: "Cửa hàng" },
@@ -25,7 +26,7 @@ export function SiteHeader() {
   return (
     <>
       <div className="bg-primary px-4 py-2 text-center text-xs text-primary-foreground sm:text-sm">
-        Đặt giỏ từ 300.000đ · Gọi {SHOP.owner} {SHOP.phoneDisplay}
+        Đặt giỏ từ 300.000đ · Nhắn Zalo {SHOP.owner} {SHOP.phoneDisplay}
       </div>
       <header className="sticky top-0 z-40 border-b border-border/80 bg-background/90 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4">
@@ -62,11 +63,14 @@ export function SiteHeader() {
 
           <div className="flex items-center gap-1">
             <a
-              href={`tel:${SHOP.phone}`}
-              className="hidden h-11 items-center gap-2 rounded-md px-3 text-sm sm:inline-flex"
+              href={SHOP.zalo}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={`Nhắn Zalo ${SHOP.phoneDisplay}`}
+              className="inline-flex h-11 shrink-0 items-center gap-2 rounded-md px-2 text-sm sm:px-3"
             >
-              <Phone className="size-4" />
-              <span className="tabular-nums">{SHOP.phoneDisplay}</span>
+              <ZaloMark />
+              <span className="hidden tabular-nums sm:inline">{SHOP.phoneDisplay}</span>
             </a>
             <button
               type="button"
@@ -103,8 +107,14 @@ export function SiteHeader() {
                 {item.label}
               </Link>
             ))}
-            <a href={`tel:${SHOP.phone}`} className="rounded-md px-3 py-3 text-sm">
-              Gọi {SHOP.phoneDisplay}
+            <a
+              href={SHOP.zalo}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-2 rounded-md px-3 py-3 text-sm"
+            >
+              <ZaloMark className="size-6" />
+              Nhắn Zalo {SHOP.phoneDisplay}
             </a>
           </nav>
         ) : null}

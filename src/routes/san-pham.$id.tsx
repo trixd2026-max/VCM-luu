@@ -10,7 +10,7 @@ import { categoryLabel, salePrice } from "@/lib/catalog";
 import { useCart } from "@/lib/cart";
 import { formatVnd } from "@/lib/format";
 import { SHOP } from "@/lib/shop";
-import { whatsappHref } from "@/lib/whatsapp";
+import { copyAndOpenZalo } from "@/lib/zalo";
 
 export const Route = createFileRoute("/san-pham/$id")({
   component: ProductPage,
@@ -38,9 +38,7 @@ function ProductPage() {
   const related = products
     .filter((p) => p.category === product.category && p.id !== product.id)
     .slice(0, 4);
-  const ask = whatsappHref(
-    `Chị ơi, em hỏi ${product.name} (${formatVnd(price)}/${product.unit}) còn hàng không ạ?`,
-  );
+  const askText = `Chị ơi, em hỏi ${product.name} (${formatVnd(price)}/${product.unit}) còn hàng không ạ?`;
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
@@ -79,10 +77,15 @@ function ProductPage() {
             </Button>
           </div>
           <div className="mt-4 flex flex-wrap gap-3">
-            <Button asChild variant="outline">
-              <a href={ask} target="_blank" rel="noreferrer">
-                Nhắn hỏi hàng
-              </a>
+            <Button
+              variant="outline"
+              onClick={() => {
+                void copyAndOpenZalo(askText).then((copied) => {
+                  if (copied) toast.message("Đã copy câu hỏi — dán vào Zalo");
+                });
+              }}
+            >
+              Nhắn Zalo hỏi hàng
             </Button>
             <Button asChild variant="ghost">
               <a href={`tel:${SHOP.phone}`}>Gọi {SHOP.phoneDisplay}</a>

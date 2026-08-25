@@ -2,13 +2,13 @@ import { i as __toESM } from "../_runtime.mjs";
 import { n as require_react } from "../_libs/@radix-ui/react-compose-refs+[...].mjs";
 import { S as require_jsx_runtime, b as useNavigate, y as Link } from "../_libs/@tanstack/react-router+[...].mjs";
 import { n as toast } from "../_libs/sonner.mjs";
-import { _ as formatVnd, g as cartTotal, h as useSheetConfig, l as Button, m as submitSheetOrder, p as SHOP, u as useCartReady, v as makeOrderId, y as useCart } from "./router-CmyOnWoO.mjs";
+import { _ as cartTotal, b as useCart, d as useCartReady, g as useSheetConfig, h as submitSheetOrder, m as SHOP, u as Button, v as formatVnd, y as makeOrderId } from "./router-8HaLVA_X.mjs";
 import { t as Input } from "./input-BrcKONiG.mjs";
 import { t as Skeleton } from "./skeleton-cOr9hq3l.mjs";
 import { t as Textarea } from "./textarea-CFyTFpnH.mjs";
 import { t as Label } from "./label-D9agDL_9.mjs";
-import { n as whatsappHref, t as buildOrderMessage } from "./whatsapp-DiYLkktO.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/thanh-toan-DvtU8mks.js
+import { r as copyZaloMessage, t as buildOrderMessage } from "./zalo-C6R4qyEp.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/thanh-toan-aBxXXIDW.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 function CheckoutPage() {
@@ -63,6 +63,7 @@ function CheckoutPage() {
 			type: "don-hang",
 			createdAt: (/* @__PURE__ */ new Date()).toISOString()
 		};
+		if (via === "zalo") window.open(SHOP.zalo, "_blank", "noopener,noreferrer");
 		if (webhookUrl.trim()) {
 			const result = await submitSheetOrder({ data: {
 				webhookUrl: webhookUrl.trim(),
@@ -86,7 +87,8 @@ function CheckoutPage() {
 			navigate({ to: "/" });
 			return;
 		}
-		window.open(whatsappHref(message), "_blank", "noopener");
+		if (await copyZaloMessage(message)) toast.success("Đã copy đơn — dán vào Zalo gửi chị Hằng");
+		else toast.message("Mở Zalo và gửi đơn cho chị Hằng");
 		navigate({ to: "/" });
 	}
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("main", {
@@ -99,7 +101,7 @@ function CheckoutPage() {
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
 				className: "mt-2 text-sm text-muted-foreground",
 				children: [
-					"Gửi đơn qua WhatsApp / Zalo cho ",
+					"Gửi đơn qua Zalo cho ",
 					SHOP.owner,
 					". Thanh toán khi nhận, hoặc chuyển khoản sau khi xác nhận."
 				]
@@ -108,7 +110,7 @@ function CheckoutPage() {
 				className: "mt-8 flex flex-col gap-4",
 				onSubmit: (e) => {
 					e.preventDefault();
-					placeOrder("whatsapp");
+					placeOrder("zalo");
 				},
 				children: [
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Field, {
@@ -152,7 +154,7 @@ function CheckoutPage() {
 							size: "lg",
 							className: "flex-1",
 							disabled: sending,
-							children: "Nhắn đặt hàng"
+							children: "Nhắn Zalo đặt hàng"
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
 							type: "button",
 							size: "lg",

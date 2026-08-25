@@ -6,7 +6,7 @@ import { n as create, t as persist } from "../_libs/zustand.mjs";
 import { n as require_react } from "../_libs/@radix-ui/react-compose-refs+[...].mjs";
 import { S as require_jsx_runtime, _ as createFileRoute, d as HeadContent, f as useRouterState, g as lazyRouteComponent, h as Outlet, m as createRouter, u as Scripts, v as createRootRoute, x as useRouter, y as Link } from "../_libs/@tanstack/react-router+[...].mjs";
 import { n as TSS_SERVER_FUNCTION, r as getServerFnById, t as createServerFn } from "./ssr.mjs";
-import { a as ShoppingBag, c as Phone, d as MapPin, h as Gift, i as Store, l as Minus, n as TriangleAlert, p as House, r as Trash2, s as Plus, t as X, u as Menu } from "../_libs/lucide-react.mjs";
+import { a as ShoppingBag, d as MapPin, h as Gift, i as Store, l as Minus, n as TriangleAlert, p as House, r as Trash2, s as Plus, t as X, u as Menu } from "../_libs/lucide-react.mjs";
 import { t as Toaster } from "../_libs/sonner.mjs";
 import { a as union, i as string, n as number, r as object, t as literal } from "../_libs/zod.mjs";
 import { t as Slot } from "../_libs/radix-ui__react-slot.mjs";
@@ -106,7 +106,7 @@ var useSheetConfig = create()(persist((set, get) => ({
 	connected: () => Boolean(get().sheetId.trim() || get().csvUrl.trim())
 }), { name: "vcm-sheet" }));
 //#endregion
-//#region node_modules/.nitro/vite/services/ssr/assets/router-CmyOnWoO.js
+//#region node_modules/.nitro/vite/services/ssr/assets/router-8HaLVA_X.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var __defProp = Object.defineProperty;
@@ -392,8 +392,6 @@ var SHOP = {
 	phone: "0345662166",
 	phoneDisplay: "0345 662 166",
 	zalo: "https://zalo.me/0345662166",
-	whatsapp: "https://wa.me/84345662166",
-	whatsappNumber: "84345662166",
 	address: "Thôn Phụng Sơn, xã Tuy Phước Đông, tỉnh Gia Lai",
 	mapsUrl: "https://www.google.com/maps/search/?api=1&query=Th%C3%B4n%20Ph%E1%BB%A5ng%20S%C6%A1n%2C%20x%C3%A3%20Tuy%20Ph%C6%B0%E1%BB%9Bc%20%C4%90%C3%B4ng%2C%20t%E1%BB%89nh%20Gia%20Lai",
 	hours: "Mở cửa mỗi ngày, 7:00 – 20:00",
@@ -648,6 +646,23 @@ function CartDrawer({ open, onClose }) {
 		})]
 	});
 }
+function ZaloGlyph({ className }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("svg", {
+		viewBox: "0 0 24 24",
+		className,
+		"aria-hidden": true,
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", {
+			fill: "currentColor",
+			d: "M6.2 5.6h11.6v2.2l-6.7 7.2h6.7V17.4H6.2v-2.3l6.7-7.1H6.2V5.6Z"
+		})
+	});
+}
+function ZaloMark({ className }) {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+		className: cn("grid size-7 place-items-center rounded-md bg-zalo text-zalo-foreground", className),
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ZaloGlyph, { className: "size-4" })
+	});
+}
 var NAV = [
 	{
 		to: "/cua-hang",
@@ -676,7 +691,7 @@ function SiteHeader() {
 		/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 			className: "bg-primary px-4 py-2 text-center text-xs text-primary-foreground sm:text-sm",
 			children: [
-				"Đặt giỏ từ 300.000đ · Gọi ",
+				"Đặt giỏ từ 300.000đ · Nhắn Zalo ",
 				SHOP.owner,
 				" ",
 				SHOP.phoneDisplay
@@ -716,10 +731,13 @@ function SiteHeader() {
 						className: "flex items-center gap-1",
 						children: [
 							/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("a", {
-								href: `tel:${SHOP.phone}`,
-								className: "hidden h-11 items-center gap-2 rounded-md px-3 text-sm sm:inline-flex",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Phone, { className: "size-4" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-									className: "tabular-nums",
+								href: SHOP.zalo,
+								target: "_blank",
+								rel: "noreferrer",
+								"aria-label": `Nhắn Zalo ${SHOP.phoneDisplay}`,
+								className: "inline-flex h-11 shrink-0 items-center gap-2 rounded-md px-2 text-sm sm:px-3",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ZaloMark, {}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "hidden tabular-nums sm:inline",
 									children: SHOP.phoneDisplay
 								})]
 							}),
@@ -751,9 +769,15 @@ function SiteHeader() {
 					onClick: () => setMenuOpen(false),
 					children: item.label
 				}, item.to)), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("a", {
-					href: `tel:${SHOP.phone}`,
-					className: "rounded-md px-3 py-3 text-sm",
-					children: ["Gọi ", SHOP.phoneDisplay]
+					href: SHOP.zalo,
+					target: "_blank",
+					rel: "noreferrer",
+					className: "flex items-center gap-2 rounded-md px-3 py-3 text-sm",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ZaloMark, { className: "size-6" }),
+						"Nhắn Zalo ",
+						SHOP.phoneDisplay
+					]
 				})]
 			}) : null]
 		}),
@@ -804,10 +828,13 @@ function SiteFooter() {
 						children: "Liên hệ"
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("a", {
-						href: `tel:${SHOP.phone}`,
+						href: SHOP.zalo,
+						target: "_blank",
+						rel: "noreferrer",
 						className: "mt-3 flex items-center gap-2 text-sm",
 						children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Phone, { className: "size-4" }),
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ZaloMark, { className: "size-6" }),
+							"Zalo ",
 							SHOP.owner,
 							" · ",
 							SHOP.phoneDisplay
@@ -970,22 +997,17 @@ function SiteShell({ children }) {
 		]
 	});
 }
-function WhatsappFab() {
+function ZaloFab() {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
-		href: SHOP.whatsapp,
+		href: SHOP.zalo,
 		target: "_blank",
 		rel: "noreferrer",
-		"aria-label": "Nhắn đặt hàng",
-		className: "fixed right-4 bottom-20 z-30 hidden size-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[0_8px_24px_rgba(28,38,31,0.2)] md:bottom-6 md:flex",
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("svg", {
-			viewBox: "0 0 24 24",
-			className: "size-5 fill-current",
-			"aria-hidden": true,
-			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("path", { d: "M12.04 2c-5.46 0-9.91 4.4-9.91 9.83 0 1.73.46 3.43 1.33 4.92L2 22l5.42-1.42A10.05 10.05 0 0 0 12.04 22c5.46 0 9.91-4.4 9.91-9.83S17.5 2 12.04 2Zm5.72 14.07c-.24.67-1.4 1.24-1.93 1.32-.49.07-1.1.1-1.77-.11-.41-.13-.93-.3-1.6-.59-2.81-1.22-4.64-4.05-4.78-4.24-.14-.19-1.16-1.54-1.16-2.94 0-1.4.73-2.09.99-2.38.26-.29.57-.36.76-.36h.55c.17 0 .41-.07.64.49.24.58.8 2 .87 2.14.07.14.12.31.02.5-.1.19-.14.31-.28.48-.14.17-.3.38-.42.51-.14.14-.29.29-.12.56.16.26.73 1.2 1.56 1.94 1.08.96 1.98 1.26 2.26 1.4.28.14.44.12.6-.07.17-.19.7-.81.89-1.09.19-.28.38-.23.64-.14.26.1 1.64.77 1.92.91.28.14.47.21.54.33.07.12.07.67-.17 1.34Z" })
-		})
+		"aria-label": `Nhắn Zalo ${SHOP.owner} ${SHOP.phoneDisplay}`,
+		className: "fixed right-4 bottom-20 z-30 grid size-14 place-items-center rounded-full bg-zalo text-zalo-foreground shadow-lg md:bottom-6",
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ZaloGlyph, { className: "size-7" })
 	});
 }
-var styles_default = "/assets/styles-YS34EjqX.css";
+var styles_default = "/assets/styles-DHAwIr_j.css";
 var APP_NAME = SHOP.name;
 var Route$9 = createRootRoute({
 	head: () => ({
@@ -1033,7 +1055,7 @@ var Route$9 = createRootRoute({
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(PreviewHostBridge, {}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(AuthProvider, { children: [
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SiteShell, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Outlet, {}) }),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(WhatsappFab, {}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ZaloFab, {}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toaster, {
 					position: "top-center",
 					toastOptions: { className: "font-sans bg-card text-foreground border-border shadow-[0_8px_24px_rgba(28,38,31,0.12)]" }
@@ -1043,9 +1065,9 @@ var Route$9 = createRootRoute({
 		] })]
 	})
 });
-var $$splitComponentImporter$8 = () => import("./routes-DbF9KGjf.mjs");
+var $$splitComponentImporter$8 = () => import("./routes-CKkgXXqv.mjs");
 var Route$8 = createFileRoute("/")({ component: lazyRouteComponent($$splitComponentImporter$8, "component") });
-var $$splitComponentImporter$7 = () => import("./cua-hang-O2-t9g0U.mjs");
+var $$splitComponentImporter$7 = () => import("./cua-hang-dwvcBzfk.mjs");
 var Route$7 = createFileRoute("/cua-hang")({
 	validateSearch: (s) => ({
 		nhom: typeof s.nhom === "string" ? s.nhom : void 0,
@@ -1053,22 +1075,22 @@ var Route$7 = createFileRoute("/cua-hang")({
 	}),
 	component: lazyRouteComponent($$splitComponentImporter$7, "component")
 });
-var $$splitComponentImporter$6 = () => import("./gio-hang-CTMvH2FD.mjs");
+var $$splitComponentImporter$6 = () => import("./gio-hang-Czo2Xfcy.mjs");
 var Route$6 = createFileRoute("/gio-hang")({ component: lazyRouteComponent($$splitComponentImporter$6, "component") });
-var $$splitComponentImporter$5 = () => import("./gio-trai-cay-EFzv7bgI.mjs");
+var $$splitComponentImporter$5 = () => import("./gio-trai-cay-CaU6KWRU.mjs");
 var Route$5 = createFileRoute("/gio-trai-cay")({
 	validateSearch: (s) => ({ muc: typeof s.muc === "string" ? s.muc : void 0 }),
 	component: lazyRouteComponent($$splitComponentImporter$5, "component")
 });
-var $$splitComponentImporter$4 = () => import("./lien-he-DD_je3D1.mjs");
+var $$splitComponentImporter$4 = () => import("./lien-he-BdfdBOka.mjs");
 var Route$4 = createFileRoute("/lien-he")({ component: lazyRouteComponent($$splitComponentImporter$4, "component") });
-var $$splitComponentImporter$3 = () => import("./quan-ly-1xbQ_TXQ.mjs");
+var $$splitComponentImporter$3 = () => import("./quan-ly-D3Xyk7Um.mjs");
 var Route$3 = createFileRoute("/quan-ly")({ component: lazyRouteComponent($$splitComponentImporter$3, "component") });
-var $$splitComponentImporter$2 = () => import("./thanh-toan-DvtU8mks.mjs");
+var $$splitComponentImporter$2 = () => import("./thanh-toan-aBxXXIDW.mjs");
 var Route$2 = createFileRoute("/thanh-toan")({ component: lazyRouteComponent($$splitComponentImporter$2, "component") });
-var $$splitComponentImporter$1 = () => import("./trap-cuoi-hoi-BVtRuv3h.mjs");
+var $$splitComponentImporter$1 = () => import("./trap-cuoi-hoi-Cp5YWmOQ.mjs");
 var Route$1 = createFileRoute("/trap-cuoi-hoi")({ component: lazyRouteComponent($$splitComponentImporter$1, "component") });
-var $$splitComponentImporter = () => import("./san-pham._id-BU6rCqA8.mjs");
+var $$splitComponentImporter = () => import("./san-pham._id-DQ8Ixstx.mjs");
 var Route = createFileRoute("/san-pham/$id")({ component: lazyRouteComponent($$splitComponentImporter, "component") });
 var rootRouteChildren = {
 	IndexRoute: Route$8.update({
@@ -1126,4 +1148,4 @@ function getRouter() {
 	});
 }
 //#endregion
-export { formatVnd as _, findProduct as a, cn as b, QtyControl as c, BASKET_OCCASIONS as d, BASKET_TIERS as f, cartTotal as g, useSheetConfig as h, Route$7 as i, Button as l, submitSheetOrder as m, Route as n, useCatalog as o, SHOP as p, Route$5 as r, ProductImage as s, router_exports as t, useCartReady as u, makeOrderId as v, useCart as y };
+export { cartTotal as _, findProduct as a, useCart as b, ProductImage as c, useCartReady as d, BASKET_OCCASIONS as f, useSheetConfig as g, submitSheetOrder as h, Route$7 as i, QtyControl as l, SHOP as m, Route as n, useCatalog as o, BASKET_TIERS as p, Route$5 as r, ZaloMark as s, router_exports as t, Button as u, formatVnd as v, cn as x, makeOrderId as y };

@@ -34,6 +34,24 @@ export function buildOrderMessage(input: {
     .join("\n");
 }
 
-export function whatsappHref(text: string) {
-  return `${SHOP.whatsapp}?text=${encodeURIComponent(text)}`;
+export function zaloHref() {
+  return SHOP.zalo;
+}
+
+export function openZalo() {
+  window.open(SHOP.zalo, "_blank", "noopener,noreferrer");
+}
+
+export async function copyZaloMessage(text: string) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function copyAndOpenZalo(text: string) {
+  openZalo();
+  return copyZaloMessage(text);
 }

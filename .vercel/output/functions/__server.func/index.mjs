@@ -67,15 +67,26 @@ function appNameFromHost(hostHeader) {
 	if (!slug || slug === "www" || !/^[a-z0-9-]{1,63}$/.test(slug)) return DEFAULT_APP_NAME;
 	return slug.split("-").filter(Boolean).map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" ") || "Grok App";
 }
+/** True for Vercel system domains. Envoy rewrites origin Host to these; they SSO-protect `/og.jpg`. */
+function isVercelSystemHost(host) {
+	return host === "vercel.app" || host.endsWith(".vercel.app") || host === "vercel.com" || host.endsWith(".vercel.com");
+}
 /** Hostname suitable for absolute og:image URLs. Preview guests (X-Forwarded-Host) are allowed. */
 function publicAppHost(hostHeader) {
 	const host = String(hostHeader ?? "").split(",")[0].trim().split(":")[0].toLowerCase();
 	if (!host || !/^[a-z0-9.-]+$/.test(host) || !host.includes(".")) return "";
 	if (/^\d{1,3}(?:\.\d{1,3}){3}$/.test(host)) return "";
+	if (isVercelSystemHost(host)) return "";
 	return host;
 }
+/**
+* Published apps always use `VITE_PUBLIC_HOSTNAME` (the grok.me host the
+* deployer injects). Live preview has no such env, so fall back to the
+* request host / X-Forwarded-Host. Never prefer request Host on a published
+* app — Envoy rewrites it to `*.vercel.app`.
+*/
 function resolvePublicHost(hostHeader) {
-	return publicAppHost(hostHeader) || publicAppHost(process.env?.VITE_PUBLIC_HOSTNAME);
+	return publicAppHost(process.env?.VITE_PUBLIC_HOSTNAME) || publicAppHost(hostHeader);
 }
 function isInstallQuery(url) {
 	const query = String(url ?? "").split("?", 2)[1] ?? "";
@@ -168,23 +179,29 @@ function readOgSite(cwd = process.cwd()) {
 		return {};
 	}
 }
+/** Public path of an on-disk share card, or "" if neither file exists. */
+function ogCardPublicPath(cwd = process.cwd()) {
+	if (existsSync(join(cwd, "public/og.jpg"))) return "/og.jpg";
+	if (existsSync(join(cwd, "public/og.png"))) return "/og.png";
+	return "";
+}
 function detectCustomOgCard(cwd = process.cwd(), site = {}) {
-	if (siteHasCustomCard(site)) return true;
-	return existsSync(join(cwd, "public/og.jpg")) || existsSync(join(cwd, "public/og.png"));
+	if (ogCardPublicPath(cwd)) return true;
+	return siteHasCustomCard(site) || Boolean(String(site.image ?? "").trim());
 }
 /** Snapshot for Vite/Nitro to bake into the server bundle (Vercel has no workspace FS). */
 function snapshotOgIdentity(cwd = process.cwd()) {
 	const site = { ...readOgSite(cwd) };
-	if (detectCustomOgCard(cwd, site)) {
+	const disk = ogCardPublicPath(cwd);
+	if (disk) {
 		site.card = "custom";
-		site.image = site.image || customOgAssetPath(cwd);
+		site.image = disk;
+	} else {
+		if (siteHasCustomCard(site)) delete site.card;
+		if (site.image) delete site.image;
 	}
 	if (existsSync(join(cwd, "public/x-banner.jpg"))) site.banner = site.banner || "/x-banner.jpg";
 	return { site };
-}
-function customOgAssetPath(cwd = process.cwd()) {
-	if (existsSync(join(cwd, "public/og.png")) && !existsSync(join(cwd, "public/og.jpg"))) return "/og.png";
-	return "/og.jpg";
 }
 function ogServiceUrl() {
 	return (String(process.env?.VITE_OG_SERVICE_URL ?? "").trim() || "https://og.grok.me").replace(/\/+$/, "");
@@ -205,7 +222,25 @@ function resolveOgTitle(site = {}, appName = DEFAULT_APP_NAME, host = "", docume
 function siteHasCustomCard(site = {}) {
 	return String(site.card ?? "").toLowerCase() === "custom";
 }
-function grokOgHeadTags({ host = "", appName = DEFAULT_APP_NAME, site = {}, documentTitle = "" } = {}) {
+/**
+* Preview: public/og.jpg|png on disk.
+* Vercel: the bake (`card=custom` / `image`) because the function cannot stat public/.
+* Otherwise empty — caller emits the og.grok.me placeholder.
+*/
+function resolveOgCardAsset(site = {}, cwd = process.cwd()) {
+	return ogCardPublicPath(cwd) || (detectCustomOgCard(cwd, site) ? String(site.image ?? "").trim() || "/og.jpg" : "");
+}
+/** Stamp `card=custom` when public/og.jpg or public/og.png is on disk. */
+function applyCustomCardFromFs(site, cwd) {
+	const disk = ogCardPublicPath(cwd);
+	if (!disk) return site;
+	return {
+		...site,
+		card: "custom",
+		image: disk
+	};
+}
+function grokOgHeadTags({ host = "", appName = DEFAULT_APP_NAME, site = {}, documentTitle = "", cwd = process.cwd() } = {}) {
 	const title = resolveOgTitle(site, appName, host, documentTitle);
 	const publicHost = resolvePublicHost(host);
 	const tags = [`<meta name="twitter:card" content="summary_large_image">`, `<meta property="og:title" content="${escapeHtml(title)}">`];
@@ -213,8 +248,8 @@ function grokOgHeadTags({ host = "", appName = DEFAULT_APP_NAME, site = {}, docu
 	if (description) tags.push(`<meta property="og:description" content="${escapeHtml(description)}">`);
 	if (String(site.type ?? "").toLowerCase() === "x:game") tags.push(`<meta property="og:type" content="x:game">`);
 	if (publicHost) {
-		const custom = siteHasCustomCard(site);
-		const asset = String(site.image ?? "").trim() || "/og.jpg";
+		const asset = resolveOgCardAsset(site, cwd);
+		const custom = Boolean(asset);
 		let image = custom ? `https://${publicHost}${asset.startsWith("/") ? asset : `/${asset}`}` : `${ogServiceUrl()}/v1/card.png?host=${encodeURIComponent(publicHost)}&title=${encodeURIComponent(title)}`;
 		const color = !custom ? placeholderCardColor(site) : "";
 		if (color) image += `&color=${encodeURIComponent(color)}`;
@@ -249,7 +284,7 @@ function insertBeforeHeadClose(html, snippet) {
 }
 function normalizeHeadContext(ctx = {}) {
 	const cwd = ctx.cwd ?? process.cwd();
-	const site = ctx.site !== void 0 ? ctx.site : snapshotOgIdentity(cwd).site;
+	const site = applyCustomCardFromFs(ctx.site !== void 0 ? ctx.site : snapshotOgIdentity(cwd).site, cwd);
 	return {
 		appName: resolveOgTitle(site, ctx.appName ?? "Grok App", ctx.host ?? ""),
 		projectId: ctx.projectId ?? readGrokProjectId(),
@@ -262,7 +297,7 @@ function normalizeHeadContext(ctx = {}) {
 }
 function injectGrokPwaHead(html, ctx = {}) {
 	if (typeof html !== "string") return html;
-	const { site, projectId, creator, creatorId, host } = normalizeHeadContext(ctx);
+	const { site, projectId, creator, creatorId, host, cwd } = normalizeHeadContext(ctx);
 	const documentTitle = titleFromDocument(html);
 	const appName = resolveOgTitle(site, ctx.appName ?? "Grok App", host, documentTitle);
 	let next = stripShareMetaTags(html);
@@ -275,7 +310,8 @@ function injectGrokPwaHead(html, ctx = {}) {
 		host,
 		appName,
 		site,
-		documentTitle
+		documentTitle,
+		cwd
 	}).join(""));
 	if (!next.includes("/grok-app-builder/extensions.js")) missing.push(...grokExtensionsHeadTags(projectId));
 	else if (projectId && !next.includes("name=\"grok-project-id\"")) missing.push(`<meta name="grok-project-id" content="${escapeHtml(projectId)}">`);

@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ProductCard } from "@/components/product-card";
 import { useCatalog } from "@/lib/catalog-store";
 import { SHOP } from "@/lib/shop";
-import { whatsappHref } from "@/lib/whatsapp";
+import { copyAndOpenZalo } from "@/lib/zalo";
 
 export const Route = createFileRoute("/trap-cuoi-hoi")({ component: WeddingPage });
 
@@ -33,7 +33,9 @@ function WeddingPage() {
     ]
       .filter(Boolean)
       .join("\n");
-    window.open(whatsappHref(text), "_blank", "noopener");
+    void copyAndOpenZalo(text).then((copied) => {
+      if (copied) toast.success("Đã copy nội dung — dán vào Zalo gửi chị Hằng");
+    });
   }
 
   return (
@@ -81,7 +83,7 @@ function WeddingPage() {
             />
             <div className="flex flex-col gap-2 sm:flex-row">
               <Button size="lg" className="flex-1" onClick={inquire}>
-                Nhắn {SHOP.owner}
+                Nhắn Zalo {SHOP.owner}
               </Button>
               <Button asChild size="lg" variant="outline" className="flex-1">
                 <a href={`tel:${SHOP.phone}`}>Gọi {SHOP.phoneDisplay}</a>

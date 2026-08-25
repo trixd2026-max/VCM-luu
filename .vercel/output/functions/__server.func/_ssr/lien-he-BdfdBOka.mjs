@@ -1,7 +1,7 @@
 import { S as require_jsx_runtime } from "../_libs/@tanstack/react-router+[...].mjs";
 import { c as Phone, d as MapPin, g as Clock } from "../_libs/lucide-react.mjs";
-import { l as Button, p as SHOP } from "./router-CmyOnWoO.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/lien-he-DD_je3D1.js
+import { m as SHOP, s as ZaloMark, u as Button } from "./router-8HaLVA_X.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/lien-he-BdfdBOka.js
 var import_jsx_runtime = require_jsx_runtime();
 function ContactPage() {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("main", {
@@ -17,7 +17,7 @@ function ContactPage() {
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
 				className: "mt-3 text-muted-foreground",
-				children: [SHOP.owner, " nhận đặt giỏ, hộp quà và tráp cưới hỏi. Gọi hoặc nhắn trước khi ghé lấy hàng."]
+				children: [SHOP.owner, " nhận đặt giỏ, hộp quà và tráp cưới hỏi. Nhắn Zalo hoặc gọi trước khi ghé lấy hàng."]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 				className: "mt-8 overflow-hidden rounded-2xl",
@@ -32,9 +32,22 @@ function ContactPage() {
 				children: [
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("li", {
 						className: "flex gap-3",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ZaloMark, { className: "mt-0.5 size-8" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+							className: "font-medium",
+							children: ["Zalo ", SHOP.owner]
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
+							href: SHOP.zalo,
+							target: "_blank",
+							rel: "noreferrer",
+							className: "text-sm tabular-nums",
+							children: SHOP.phoneDisplay
+						})] })]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("li", {
+						className: "flex gap-3",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Phone, { className: "mt-0.5 size-5 text-primary" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 							className: "font-medium",
-							children: SHOP.owner
+							children: "Điện thoại"
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
 							href: `tel:${SHOP.phone}`,
 							className: "text-sm tabular-nums",
@@ -70,8 +83,10 @@ function ContactPage() {
 						asChild: true,
 						size: "lg",
 						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
-							href: `tel:${SHOP.phone}`,
-							children: "Gọi ngay"
+							href: SHOP.zalo,
+							target: "_blank",
+							rel: "noreferrer",
+							children: "Nhắn Zalo"
 						})
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
@@ -79,10 +94,8 @@ function ContactPage() {
 						size: "lg",
 						variant: "outline",
 						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
-							href: SHOP.whatsapp,
-							target: "_blank",
-							rel: "noreferrer",
-							children: "Nhắn WhatsApp"
+							href: `tel:${SHOP.phone}`,
+							children: "Gọi điện"
 						})
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {

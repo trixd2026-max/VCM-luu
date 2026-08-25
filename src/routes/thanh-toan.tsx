@@ -11,7 +11,7 @@ import { useSheetConfig } from "@/lib/sheet-config";
 import { submitSheetOrder } from "@/lib/sheet";
 import { formatVnd, makeOrderId } from "@/lib/format";
 import { SHOP } from "@/lib/shop";
-import { buildOrderMessage, whatsappHref } from "@/lib/whatsapp";
+import { buildOrderMessage, copyZaloMessage } from "@/lib/zalo";
 import { useCartReady } from "@/hooks/use-hydrated";
 
 export const Route = createFileRoute("/thanh-toan")({ component: CheckoutPage });
@@ -49,7 +49,7 @@ function CheckoutPage() {
     );
   }
 
-  async function placeOrder(via: "whatsapp" | "call") {
+  async function placeOrder(via: "zalo" | "call") {
     if (!phone.trim()) {
       toast.error("Nhập số điện thoại để cửa hàng liên hệ.");
       return;
@@ -70,6 +70,10 @@ function CheckoutPage() {
       type: "don-hang",
       createdAt: new Date().toISOString(),
     };
+
+    if (via === "zalo") {
+      window.open(SHOP.zalo, "_blank", "noopener,noreferrer");
+    }
 
     if (webhookUrl.trim()) {
       const result = await submitSheetOrder({
@@ -95,7 +99,9 @@ function CheckoutPage() {
       void navigate({ to: "/" });
       return;
     }
-    window.open(whatsappHref(message), "_blank", "noopener");
+    const copied = await copyZaloMessage(message);
+    if (copied) toast.success("Đã copy đơn — dán vào Zalo gửi chị Hằng");
+    else toast.message("Mở Zalo và gửi đơn cho chị Hằng");
     void navigate({ to: "/" });
   }
 
@@ -104,14 +110,14 @@ function CheckoutPage() {
       <div>
         <h1 className="font-display text-4xl">Đặt hàng</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Gửi đơn qua WhatsApp / Zalo cho {SHOP.owner}. Thanh toán khi nhận, hoặc
+          Gửi đơn qua Zalo cho {SHOP.owner}. Thanh toán khi nhận, hoặc
           chuyển khoản sau khi xác nhận.
         </p>
         <form
           className="mt-8 flex flex-col gap-4"
           onSubmit={(e) => {
             e.preventDefault();
-            void placeOrder("whatsapp");
+            void placeOrder("zalo");
           }}
         >
           <Field label="Họ tên">
@@ -142,7 +148,7 @@ function CheckoutPage() {
           </Field>
           <div className="mt-2 flex flex-col gap-3 sm:flex-row">
             <Button type="submit" size="lg" className="flex-1" disabled={sending}>
-              Nhắn đặt hàng
+              Nhắn Zalo đặt hàng
             </Button>
             <Button
               type="button"

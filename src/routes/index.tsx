@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Gift, Heart, Leaf, Phone } from "lucide-react";
+import { ArrowRight, Gift, Heart, Leaf } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/product-card";
 import { SHOP, BASKET_TIERS } from "@/lib/shop";
@@ -129,9 +129,8 @@ function Home() {
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild size="lg" variant="secondary">
-                <a href={`tel:${SHOP.phone}`}>
-                  <Phone className="size-4" />
-                  Gọi {SHOP.phoneDisplay}
+                <a href={SHOP.zalo} target="_blank" rel="noreferrer">
+                  Nhắn Zalo {SHOP.phoneDisplay}
                 </a>
               </Button>
               <Button

@@ -1,9 +1,9 @@
 import { t as CATEGORIES } from "./catalog-jodnuEUp.mjs";
 import { S as require_jsx_runtime, y as Link } from "../_libs/@tanstack/react-router+[...].mjs";
-import { _ as ArrowRight, c as Phone, f as Leaf, h as Gift, m as Heart } from "../_libs/lucide-react.mjs";
-import { _ as formatVnd, f as BASKET_TIERS, l as Button, o as useCatalog, p as SHOP } from "./router-CmyOnWoO.mjs";
-import { t as ProductCard } from "./product-card-CKNSeMau.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/routes-DbF9KGjf.js
+import { _ as ArrowRight, f as Leaf, h as Gift, m as Heart } from "../_libs/lucide-react.mjs";
+import { m as SHOP, o as useCatalog, p as BASKET_TIERS, u as Button, v as formatVnd } from "./router-8HaLVA_X.mjs";
+import { t as ProductCard } from "./product-card-DLMGh7zJ.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/routes-CKkgXXqv.js
 var import_jsx_runtime = require_jsx_runtime();
 function Home() {
 	const featured = useCatalog((s) => s.products).filter((p) => p.featured).slice(0, 8);
@@ -180,12 +180,10 @@ function Home() {
 							size: "lg",
 							variant: "secondary",
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("a", {
-								href: `tel:${SHOP.phone}`,
-								children: [
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Phone, { className: "size-4" }),
-									"Gọi ",
-									SHOP.phoneDisplay
-								]
+								href: SHOP.zalo,
+								target: "_blank",
+								rel: "noreferrer",
+								children: ["Nhắn Zalo ", SHOP.phoneDisplay]
 							})
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
 							asChild: true,

@@ -1,0 +1,3 @@
+import{i as e,t}from"./format-BDkm-pUM.js";import{p as n}from"./index-Bs2ZpyXb.js";function r(r){let i=r.lines.map(e=>{let n=e.note?` (${e.note})`:``;return`- ${e.qty} ${e.unit} ${e.name}${n}: ${t(e.price*e.qty)}`}).join(`
+`),a=t(e(r.lines));return[`Xin chào ${n.name},`,`Em muốn đặt đơn ${r.orderId}:`,``,i,``,`Tổng: ${a}`,`Tên: ${r.name}`,`SĐT: ${r.phone}`,r.address?`Địa chỉ: ${r.address}`:``,r.note?`Ghi chú: ${r.note}`:``].filter(Boolean).join(`
+`)}function i(){window.open(n.zalo,`_blank`,`noopener,noreferrer`)}async function a(e){try{return await navigator.clipboard.writeText(e),!0}catch{return!1}}async function o(e){return i(),a(e)}export{o as n,a as r,r as t};

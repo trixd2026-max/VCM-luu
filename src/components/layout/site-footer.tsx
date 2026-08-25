@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
-import { MapPin, Phone } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { SHOP } from "@/lib/shop";
+import { ZaloMark } from "@/components/zalo-icon";
 
 export function SiteFooter() {
   return (
@@ -16,11 +17,13 @@ export function SiteFooter() {
         <div>
           <p className="text-xs tracking-wide text-muted-foreground uppercase">Liên hệ</p>
           <a
-            href={`tel:${SHOP.phone}`}
+            href={SHOP.zalo}
+            target="_blank"
+            rel="noreferrer"
             className="mt-3 flex items-center gap-2 text-sm"
           >
-            <Phone className="size-4" />
-            {SHOP.owner} · {SHOP.phoneDisplay}
+            <ZaloMark className="size-6" />
+            Zalo {SHOP.owner} · {SHOP.phoneDisplay}
           </a>
           <a
             href={SHOP.mapsUrl}

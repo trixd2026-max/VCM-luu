@@ -1,5 +1,5 @@
-import { _ as formatVnd, g as cartTotal, p as SHOP } from "./router-CmyOnWoO.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/whatsapp-DiYLkktO.js
+import { _ as cartTotal, m as SHOP, v as formatVnd } from "./router-8HaLVA_X.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/zalo-C6R4qyEp.js
 function buildOrderMessage(input) {
 	const items = input.lines.map((l) => {
 		const note = l.note ? ` (${l.note})` : "";
@@ -19,8 +19,20 @@ function buildOrderMessage(input) {
 		input.note ? `Ghi chú: ${input.note}` : ""
 	].filter(Boolean).join("\n");
 }
-function whatsappHref(text) {
-	return `${SHOP.whatsapp}?text=${encodeURIComponent(text)}`;
+function openZalo() {
+	window.open(SHOP.zalo, "_blank", "noopener,noreferrer");
+}
+async function copyZaloMessage(text) {
+	try {
+		await navigator.clipboard.writeText(text);
+		return true;
+	} catch {
+		return false;
+	}
+}
+async function copyAndOpenZalo(text) {
+	openZalo();
+	return copyZaloMessage(text);
 }
 //#endregion
-export { whatsappHref as n, buildOrderMessage as t };
+export { copyAndOpenZalo as n, copyZaloMessage as r, buildOrderMessage as t };

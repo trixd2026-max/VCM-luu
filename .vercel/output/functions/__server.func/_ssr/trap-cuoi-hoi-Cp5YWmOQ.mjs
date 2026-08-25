@@ -2,12 +2,12 @@ import { i as __toESM } from "../_runtime.mjs";
 import { n as require_react } from "../_libs/@radix-ui/react-compose-refs+[...].mjs";
 import { S as require_jsx_runtime, y as Link } from "../_libs/@tanstack/react-router+[...].mjs";
 import { n as toast } from "../_libs/sonner.mjs";
-import { l as Button, o as useCatalog, p as SHOP } from "./router-CmyOnWoO.mjs";
-import { t as ProductCard } from "./product-card-CKNSeMau.mjs";
+import { m as SHOP, o as useCatalog, u as Button } from "./router-8HaLVA_X.mjs";
+import { t as ProductCard } from "./product-card-DLMGh7zJ.mjs";
 import { t as Input } from "./input-BrcKONiG.mjs";
 import { t as Textarea } from "./textarea-CFyTFpnH.mjs";
-import { n as whatsappHref } from "./whatsapp-DiYLkktO.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/trap-cuoi-hoi-BVtRuv3h.js
+import { n as copyAndOpenZalo } from "./zalo-C6R4qyEp.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/trap-cuoi-hoi-Cp5YWmOQ.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 function WeddingPage() {
@@ -28,7 +28,9 @@ function WeddingPage() {
 			date ? `Ngày lễ: ${date}` : "",
 			note ? `Ghi chú: ${note}` : ""
 		].filter(Boolean).join("\n");
-		window.open(whatsappHref(text), "_blank", "noopener");
+		copyAndOpenZalo(text).then((copied) => {
+			if (copied) toast.success("Đã copy nội dung — dán vào Zalo gửi chị Hằng");
+		});
 	}
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("main", {
 		className: "mx-auto max-w-6xl px-4 py-10",
@@ -102,7 +104,7 @@ function WeddingPage() {
 									size: "lg",
 									className: "flex-1",
 									onClick: inquire,
-									children: ["Nhắn ", SHOP.owner]
+									children: ["Nhắn Zalo ", SHOP.owner]
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
 									asChild: true,
 									size: "lg",

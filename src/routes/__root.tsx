@@ -3,7 +3,7 @@ import { Toaster } from "sonner";
 import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { SiteShell } from "@/components/layout/site-shell";
-import { WhatsappFab } from "@/components/whatsapp-fab";
+import { ZaloFab } from "@/components/zalo-fab";
 import { SHOP } from "@/lib/shop";
 import appCss from "../styles.css?url";
 
@@ -40,7 +40,7 @@ export const Route = createRootRoute({
           <SiteShell>
             <Outlet />
           </SiteShell>
-          <WhatsappFab />
+          <ZaloFab />
           <Toaster
             position="top-center"
             toastOptions={{

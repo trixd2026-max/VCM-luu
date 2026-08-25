@@ -2,8 +2,8 @@ import { o as salePrice, r as categoryLabel } from "./catalog-jodnuEUp.mjs";
 import { S as require_jsx_runtime, y as Link } from "../_libs/@tanstack/react-router+[...].mjs";
 import { s as Plus } from "../_libs/lucide-react.mjs";
 import { n as toast } from "../_libs/sonner.mjs";
-import { _ as formatVnd, s as ProductImage, y as useCart } from "./router-CmyOnWoO.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/product-card-CKNSeMau.js
+import { b as useCart, c as ProductImage, v as formatVnd } from "./router-8HaLVA_X.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/product-card-DLMGh7zJ.js
 var import_jsx_runtime = require_jsx_runtime();
 function ProductCard({ product }) {
 	const add = useCart((s) => s.add);
