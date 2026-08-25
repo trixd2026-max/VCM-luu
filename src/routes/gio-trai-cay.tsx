@@ -10,6 +10,13 @@ import { useCart } from "@/lib/cart";
 import { useCatalog } from "@/lib/catalog-store";
 import { cn } from "@/lib/utils";
 
+const TIER_IMAGE: Record<number, string> = {
+  300_000: "/products/gio-300k.jpg",
+  400_000: "/products/gio-400k.jpg",
+  500_000: "/products/gio2.jpg",
+  1_000_000: "/products/anh-gio.jpg",
+};
+
 type Search = { muc?: string };
 
 export const Route = createFileRoute("/gio-trai-cay")({
@@ -49,7 +56,7 @@ function BasketPage() {
       name: `Giỏ trái cây ${formatVnd(tier)}`,
       price: tier,
       unit: "giỏ",
-      image: "/products/gio.jpg",
+      image: TIER_IMAGE[tier] ?? "/products/gio.jpg",
       note,
     });
     toast.success("Đã thêm giỏ vào hàng");
@@ -65,7 +72,11 @@ function BasketPage() {
       </p>
 
       <div className="mt-8 overflow-hidden rounded-2xl">
-        <img src="/products/gio.jpg" alt="Giỏ trái cây" className="aspect-video w-full object-cover" />
+        <img
+          src={TIER_IMAGE[tier] ?? "/products/gio.jpg"}
+          alt="Giỏ trái cây"
+          className="aspect-video w-full object-cover"
+        />
       </div>
 
       <h2 className="font-display mt-10 text-xl">Chọn mức</h2>

@@ -17,7 +17,7 @@ function Home() {
     <main>
       <section className="relative isolate min-h-[72vh] overflow-hidden">
         <img
-          src="/products/hero.jpg"
+          src="/products/tropical.jpg"
           alt="Quầy trái cây Vườn Của Mít"
           className="absolute inset-0 h-full w-full object-cover"
         />

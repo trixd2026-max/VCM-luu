@@ -17,7 +17,7 @@ function ContactPage() {
       </p>
 
       <div className="mt-8 overflow-hidden rounded-2xl">
-        <img src="/products/cho.jpg" alt="Trái cây tại vườn" className="aspect-video w-full object-cover" />
+        <img src="/products/harvest.jpg" alt="Trái cây tại vườn" className="aspect-video w-full object-cover" />
       </div>
 
       <ul className="mt-8 flex flex-col gap-5">
