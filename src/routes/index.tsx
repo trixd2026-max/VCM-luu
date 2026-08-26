@@ -120,8 +120,8 @@ function Home() {
             <img src="/products/mit.jpg" alt="Mít tại vườn" className="aspect-portrait w-full object-cover lg:aspect-wide" />
           </div>
           <div>
-            <p className="text-xs tracking-[0.2em] uppercase opacity-70">Câu chuyện vườn</p>
-            <h2 className="font-display mt-2 text-4xl italic">Từ vườn mít nhà mình</h2>
+            <p className="text-xs tracking-[0.2em] uppercase opacity-70">Câu chuyện</p>
+            <h2 className="font-display mt-2 text-4xl italic">{SHOP.name}</h2>
             <p className="mt-4 text-primary-foreground/85">
               Vườn Của Mít lấy trái trong ngày: cam, quýt, bưởi, lê, xoài, thanh long
               và mít Thái. Có trái nhập — kiwi, táo, dưa hấu Kiều Farm — để gói giỏ cho
@@ -139,7 +139,7 @@ function Home() {
                 variant="outline"
                 className="border-0 text-primary-foreground shadow-[0_0_0_1px_rgba(246,241,232,0.35)] hover:bg-primary-foreground/10"
               >
-                <Link to="/lien-he">Địa chỉ vườn</Link>
+                <Link to="/lien-he">Địa chỉ cửa hàng</Link>
               </Button>
             </div>
           </div>

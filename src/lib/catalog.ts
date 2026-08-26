@@ -55,14 +55,14 @@ function num(value: string) {
 
 export const LOCAL_PRODUCTS: Product[] = [
   {
-    id: "mit-thai",
-    name: "Mít Thái",
+    id: "sau-rieng",
+    name: "Sầu riêng",
     category: "trai-cay-vuon",
-    price: 28_000,
+    price: 45_000,
     unit: "kg",
     description:
-      "Mít Thái hái tại vườn — thơm, múi dày, ngọt hậu. Đặc sản mang tên cửa hàng, bán theo kg hoặc nguyên trái.",
-    image: "/products/mit.jpg",
+      "Sầu riêng cơm vàng, béo thơm. Bán theo kg, chọn trái vừa chín — nhắn Zalo trước để giữ hàng.",
+    image: "/products/sau-rieng.jpg",
     featured: true,
     inStock: true,
     discount: 0,
@@ -286,19 +286,6 @@ export const LOCAL_PRODUCTS: Product[] = [
     unit: "kg",
     description: "Lựu đỏ mọng hạt, chua ngọt. Trái đẹp, hay dùng trong giỏ biếu và hộp quà.",
     image: "/products/anh-luu.jpg",
-    featured: true,
-    inStock: true,
-    discount: 0,
-  },
-  {
-    id: "sau-rieng",
-    name: "Sầu riêng",
-    category: "trai-cay-vuon",
-    price: 120_000,
-    unit: "kg",
-    description:
-      "Sầu riêng cơm vàng, béo thơm. Bán theo kg, chọn trái vừa chín — nhắn Zalo trước để giữ hàng.",
-    image: "/products/sau-rieng.jpg",
     featured: true,
     inStock: true,
     discount: 0,
