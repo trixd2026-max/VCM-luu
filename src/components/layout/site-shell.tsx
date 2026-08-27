@@ -6,11 +6,10 @@ import { useCatalog } from "@/lib/catalog-store";
 
 export function SiteShell({ children }: { children: ReactNode }) {
   const load = useCatalog((s) => s.load);
-  const loaded = useCatalog((s) => s.loaded);
 
   useEffect(() => {
-    if (!loaded) void load();
-  }, [load, loaded]);
+    void load();
+  }, [load]);
 
   return (
     <div className="flex min-h-dvh flex-col">

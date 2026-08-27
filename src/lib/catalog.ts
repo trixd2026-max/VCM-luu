@@ -58,11 +58,11 @@ export const LOCAL_PRODUCTS: Product[] = [
     id: "sau-rieng",
     name: "Sầu riêng",
     category: "trai-cay-vuon",
-    price: 45_000,
+    price: 60_000,
     unit: "kg",
     description:
       "Sầu riêng cơm vàng, béo thơm. Bán theo kg, chọn trái vừa chín — nhắn Zalo trước để giữ hàng.",
-    image: "/products/sau-rieng.jpg",
+    image: "/products/mit.jpg",
     featured: true,
     inStock: true,
     discount: 0,

@@ -18,13 +18,13 @@ export const useCatalog = create<CatalogState>((set, get) => ({
   loading: false,
   loaded: false,
   load: async () => {
-    if (get().loading) return;
     const cfg = useSheetConfig.getState();
     const hasSheet = Boolean(cfg.sheetId.trim() || cfg.csvUrl.trim());
     if (!hasSheet) {
-      set({ products: LOCAL_PRODUCTS, source: "local", loaded: true, warning: undefined });
+      set({ products: LOCAL_PRODUCTS, source: "local", loaded: true, warning: undefined, loading: false });
       return;
     }
+    if (get().loading) return;
     set({ loading: true });
     try {
       const result = await fetchCatalog({
