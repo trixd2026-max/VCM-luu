@@ -11,51 +11,33 @@ export const Route = createFileRoute("/")({ component: Home });
 
 function Home() {
   const products = useCatalog((s) => s.products);
-  const featured = products.filter((p) => p.featured).slice(0, 8);
+  const featuredFruit = products
+    .filter((p) => p.featured && (p.category === "trai-cay-vuon" || p.category === "trai-cay-nhap"))
+    .slice(0, 4);
+  const featuredGifts = products
+    .filter(
+      (p) =>
+        p.featured &&
+        (p.category === "gio-trai-cay" || p.category === "lang-hoa" || p.category === "trap-cuoi"),
+    )
+    .slice(0, 4);
+  const featured = [...featuredFruit, ...featuredGifts];
 
   return (
     <main>
-      <section className="relative isolate min-h-[72vh] overflow-hidden">
+      <section className="bg-[#e7f4c4]">
         <img
-          src="/products/tropical.jpg"
-          alt="Quầy trái cây Vườn Của Mít"
-          className="absolute inset-0 h-full w-full object-cover"
+          src="/products/panel.jpg"
+          alt="Vườn Của Mít — trái cây, giỏ quà, tráp cưới, hoa viếng"
+          className="mx-auto w-full max-w-6xl object-contain"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-foreground/80 via-foreground/50 to-foreground/10" />
-        <div className="relative mx-auto flex min-h-[72vh] max-w-6xl flex-col justify-end px-4 py-16 sm:justify-center">
-          <p className="text-sm tracking-[0.2em] text-primary-foreground/80 uppercase">
-            Thôn Phụng Sơn · Tuy Phước Đông
-          </p>
-          <h1 className="font-display mt-3 max-w-xl text-5xl text-primary-foreground italic sm:text-6xl">
-            {SHOP.name}
-          </h1>
-          <p className="mt-4 max-w-md text-base text-primary-foreground/90 sm:text-lg">
-            Trái cây hái tại vườn, gói thành giỏ kính cúng và tráp cưới hỏi.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Button asChild size="lg">
-              <Link to="/cua-hang">
-                Xem cửa hàng
-                <ArrowRight className="size-4" />
-              </Link>
-            </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="secondary"
-              className="bg-card/90 text-foreground hover:bg-card"
-            >
-              <Link to="/gio-trai-cay">Đặt giỏ quà</Link>
-            </Button>
-          </div>
-        </div>
       </section>
 
       <section className="border-b border-border bg-card">
         <div className="mx-auto grid max-w-6xl gap-6 px-4 py-6 sm:grid-cols-3">
           <TrustItem icon={Leaf} title="Hái trong ngày" text="Cam, quýt, mít, thanh long từ vườn nhà." />
-          <TrustItem icon={Gift} title="Gói giỏ từ 300K" text="Kính cúng, biếu tặng, hộp quà, lẵng hoa." />
-          <TrustItem icon={Heart} title="Tráp cưới hỏi" text="Set 5 · 7 · 9 tráp, trao đổi lễ nghi." />
+          <TrustItem icon={Gift} title="Gói giỏ từ 300K" text="Kính cúng, biếu tặng, giỏ hoa trái cây." />
+          <TrustItem icon={Heart} title="Tráp cưới · hoa viếng" text="Set 5 · 7 · 9 tráp, lẵng hoa tang lễ." />
         </div>
       </section>
 
@@ -63,7 +45,7 @@ function Home() {
         <div className="flex items-end justify-between gap-4">
           <div>
             <p className="text-xs tracking-wide text-muted-foreground uppercase">Đang có</p>
-            <h2 className="font-display mt-1 text-3xl">Trái cây nổi bật</h2>
+            <h2 className="font-display mt-1 text-3xl">Đang bán chạy</h2>
           </div>
           <Link to="/cua-hang" className="hidden items-center gap-1 text-sm sm:inline-flex">
             Tất cả
@@ -95,11 +77,11 @@ function Home() {
 
       <section className="mx-auto max-w-6xl px-4 py-16">
         <p className="text-xs tracking-wide text-muted-foreground uppercase">Giỏ biếu · kính cúng</p>
-        <h2 className="font-display mt-1 text-3xl">Bốn mức giá gói sẵn</h2>
+        <h2 className="font-display mt-1 text-3xl">Mẫu giỏ gói sẵn</h2>
         <p className="mt-2 max-w-xl text-muted-foreground">
           Chọn mức, ghi dịp và lời nhắn — chị Hằng gói theo trái đang ngon trong ngày.
         </p>
-        <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {BASKET_TIERS.map((tier) => (
             <Link
               key={tier}
@@ -117,7 +99,7 @@ function Home() {
       <section className="bg-primary text-primary-foreground">
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 lg:grid-cols-2">
           <div className="overflow-hidden rounded-2xl">
-            <img src="/products/mit.jpg" alt="Mít tại vườn" className="aspect-portrait w-full object-cover lg:aspect-wide" />
+            <img src="/products/sau-rieng.jpg" alt="Sầu riêng tại vườn" className="aspect-portrait w-full object-cover lg:aspect-wide" />
           </div>
           <div>
             <p className="text-xs tracking-[0.2em] uppercase opacity-70">Câu chuyện</p>

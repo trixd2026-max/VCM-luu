@@ -50,7 +50,7 @@ function WeddingPage() {
       <div className="mt-8 overflow-hidden rounded-2xl">
         <img
           src="/products/trap-cuoi.jpg"
-          alt="Hoa tươi cho lễ cưới hỏi"
+          alt="Tráp cưới hỏi Vườn Của Mít"
           className="aspect-video w-full object-cover"
         />
       </div>

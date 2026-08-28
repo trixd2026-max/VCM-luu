@@ -10,7 +10,7 @@ export function SiteFooter() {
         <div className="lg:col-span-2">
           <p className="font-display text-2xl">{SHOP.name}</p>
           <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-            Trái cây vườn, nông sản sạch, giỏ kính cúng và tráp cưới hỏi. Gói tại chỗ,
+            Trái cây vườn, giỏ quà, tráp cưới hỏi và hoa viếng tang. Gói tại chỗ,
             giao trong khu vực Tuy Phước Đông.
           </p>
         </div>
@@ -47,6 +47,11 @@ export function SiteFooter() {
             </li>
             <li>
               <Link to="/trap-cuoi-hoi">Tráp cưới hỏi</Link>
+            </li>
+            <li>
+              <a href={SHOP.facebook} target="_blank" rel="noreferrer">
+                Facebook
+              </a>
             </li>
             <li>
               <Link to="/quan-ly">Kết nối Google Sheet</Link>

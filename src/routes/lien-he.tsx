@@ -12,8 +12,8 @@ function ContactPage() {
       <p className="text-xs tracking-wide text-muted-foreground uppercase">Ghé vườn</p>
       <h1 className="font-display mt-1 text-4xl">Liên hệ</h1>
       <p className="mt-3 text-muted-foreground">
-        {SHOP.owner} nhận đặt giỏ, hộp quà và tráp cưới hỏi. Nhắn Zalo hoặc gọi trước
-        khi ghé lấy hàng.
+        {SHOP.owner} nhận đặt giỏ, hộp quà, tráp cưới hỏi và hoa viếng. Nhắn Zalo
+        hoặc gọi trước khi ghé lấy hàng.
       </p>
 
       <div className="mt-8 overflow-hidden rounded-2xl">
@@ -42,6 +42,9 @@ function ContactPage() {
             <a href={`tel:${SHOP.phone}`} className="text-sm tabular-nums">
               {SHOP.phoneDisplay}
             </a>
+            <a href={`tel:${SHOP.phone2}`} className="mt-1 block text-sm tabular-nums">
+              {SHOP.phone2Display}
+            </a>
           </div>
         </li>
         <li className="flex gap-3">
@@ -58,6 +61,15 @@ function ContactPage() {
             <p className="text-sm text-muted-foreground">{SHOP.hours}</p>
           </div>
         </li>
+        <li className="flex gap-3">
+          <span className="mt-0.5 grid size-5 place-items-center text-sm font-bold text-primary">f</span>
+          <div>
+            <p className="font-medium">Facebook</p>
+            <a href={SHOP.facebook} target="_blank" rel="noreferrer" className="text-sm">
+              Vườn Của Mít
+            </a>
+          </div>
+        </li>
       </ul>
 
       <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -68,6 +80,11 @@ function ContactPage() {
         </Button>
         <Button asChild size="lg" variant="outline">
           <a href={`tel:${SHOP.phone}`}>Gọi điện</a>
+        </Button>
+        <Button asChild size="lg" variant="secondary">
+          <a href={SHOP.facebook} target="_blank" rel="noreferrer">
+            Xem Facebook
+          </a>
         </Button>
         <Button asChild size="lg" variant="secondary">
           <a href={SHOP.mapsUrl} target="_blank" rel="noreferrer">

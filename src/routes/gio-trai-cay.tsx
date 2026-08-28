@@ -13,8 +13,11 @@ import { cn } from "@/lib/utils";
 const TIER_IMAGE: Record<number, string> = {
   300_000: "/products/gio-300k.jpg",
   400_000: "/products/gio-400k.jpg",
-  500_000: "/products/gio2.jpg",
-  1_000_000: "/products/anh-gio.jpg",
+  500_000: "/products/gio-500k.jpg",
+  600_000: "/products/gio-600k.jpg",
+  650_000: "/products/gio-650k.jpg",
+  700_000: "/products/gio-700k.jpg",
+  1_000_000: "/products/gio-1trieu.jpg",
 };
 
 type Search = { muc?: string };
@@ -32,7 +35,7 @@ function BasketPage() {
   const addCustom = useCart((s) => s.addCustom);
   const initial = Number(search.muc) || 300_000;
   const [tier, setTier] = useState(
-    BASKET_TIERS.includes(initial as (typeof BASKET_TIERS)[number]) ? initial : 300_000,
+    BASKET_TIERS.includes(initial as (typeof BASKET_TIERS)[number]) ? initial : 500_000,
   );
   const [occasion, setOccasion] = useState("bieu-tang");
   const [picks, setPicks] = useState<string[]>([]);
@@ -67,8 +70,8 @@ function BasketPage() {
       <p className="text-xs tracking-wide text-muted-foreground uppercase">Dịch vụ gói</p>
       <h1 className="font-display mt-1 text-4xl">Giỏ trái cây theo ý</h1>
       <p className="mt-3 text-muted-foreground">
-        Kính cúng, biếu tặng từ 300, 400, 500 nghìn đến 1 triệu đồng. Gói giấy kính,
-        nơ, thiệp — giao đúng giờ nếu báo trước.
+        Kính cúng, biếu tặng từ 300 nghìn đến 1 triệu đồng. Gói giấy kính, nơ, hoa —
+        giao đúng giờ nếu báo trước.
       </p>
 
       <div className="mt-8 overflow-hidden rounded-2xl">
@@ -80,7 +83,7 @@ function BasketPage() {
       </div>
 
       <h2 className="font-display mt-10 text-xl">Chọn mức</h2>
-      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
         {BASKET_TIERS.map((t) => (
           <button
             key={t}
