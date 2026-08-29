@@ -17,6 +17,7 @@ const TIER_IMAGE: Record<number, string> = {
   600_000: "/products/gio-600k.jpg",
   650_000: "/products/gio-650k.jpg",
   700_000: "/products/gio-700k.jpg",
+  850_000: "/products/gio.jpg",
   1_000_000: "/products/gio-1trieu.jpg",
 };
 
@@ -83,7 +84,7 @@ function BasketPage() {
       </div>
 
       <h2 className="font-display mt-10 text-xl">Chọn mức</h2>
-      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
         {BASKET_TIERS.map((t) => (
           <button
             key={t}
