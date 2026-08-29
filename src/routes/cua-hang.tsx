@@ -28,7 +28,7 @@ function ShopPage() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return products.filter((p) => {
+    const list = products.filter((p) => {
       if (nhom && p.category !== nhom) return false;
       if (!q) return true;
       return (
@@ -36,6 +36,8 @@ function ShopPage() {
         p.description.toLowerCase().includes(q)
       );
     });
+    // Sắp xếp giá từ thấp đến cao (đặc biệt hữu ích cho giỏ trái cây)
+    return [...list].sort((a, b) => a.price - b.price);
   }, [products, nhom, query]);
 
   return (
