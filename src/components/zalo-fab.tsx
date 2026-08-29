@@ -9,7 +9,7 @@ export function ZaloFab() {
         target="_blank"
         rel="noreferrer"
         aria-label="Nhắn Facebook Messenger"
-        className="grid size-14 place-items-center rounded-full bg-facebook text-white shadow-lg"
+        className="grid size-14 place-items-center rounded-full bg-[#1877F2] text-white shadow-lg"
       >
         <FacebookGlyph className="size-7" />
       </a>
