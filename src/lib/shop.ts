@@ -13,6 +13,7 @@ export const SHOP = {
   phone2: "0942223984",
   phone2Display: "0942 223 984",
   facebook: "https://www.facebook.com/profile.php?id=61579721713679",
+  facebookMessenger: "https://www.facebook.com/messages/t/774179609114947",
 } as const;
 
 export const BASKET_TIERS = [300_000, 400_000, 500_000, 600_000, 650_000, 700_000, 850_000, 1_000_000] as const;
