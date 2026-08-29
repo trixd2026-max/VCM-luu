@@ -116,7 +116,7 @@ export const LOCAL_PRODUCTS: Product[] = [
     unit: "quả",
     description:
       "Bưởi da xanh múi hồng, ít hạt, ngọt thanh. Bán theo quả, chọn size vừa hoặc to theo giỏ.",
-    image: "/products/buoi3.jpg",
+    image: "/products/buoi.jpg",
     featured: true,
     inStock: true,
     discount: 0,
