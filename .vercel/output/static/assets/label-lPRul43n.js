@@ -1,1 +1,0 @@
-import{i as e,r as t,t as n}from"./utils-BFmSEvC8.js";e();var r=t();function i({className:e,...t}){return(0,r.jsx)(`label`,{className:n(`text-sm font-medium text-foreground`,e),...t})}export{i as t};
