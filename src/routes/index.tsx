@@ -25,7 +25,7 @@ function Home() {
 
   return (
     <main>
-      {/* Banner — không còn nút chồng lên ảnh */}
+      {/* Banner */}
       <section className="relative bg-[#e7f4c4]">
         <div className="relative mx-auto max-w-6xl">
           <img
@@ -36,31 +36,36 @@ function Home() {
         </div>
       </section>
 
-      {/* Nút + hàng trust cùng một dòng */}
+      {/* Nút + trust — Flexbox tối ưu */}
       <section className="border-b border-border bg-card">
-        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:gap-6 sm:py-5">
-          <div className="flex shrink-0 flex-wrap gap-2">
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:gap-5 sm:py-4">
+          {/* Nhóm nút: mobile full-width đều nhau, desktop gọn bên trái */}
+          <div className="flex w-full shrink-0 gap-2 sm:w-auto">
             <Button
               asChild
               size="lg"
               variant="secondary"
-              className="h-10 min-w-[130px] shadow-sm sm:h-11 sm:min-w-[150px]"
+              className="h-10 flex-1 shadow-sm sm:h-11 sm:flex-none sm:px-5"
             >
-              <Link to="/cua-hang">
+              <Link to="/cua-hang" className="inline-flex items-center justify-center gap-1.5">
                 Xem cửa hàng
-                <ArrowRight className="ml-1.5 size-4" />
+                <ArrowRight className="size-4 shrink-0" />
               </Link>
             </Button>
             <Button
               asChild
               size="lg"
               variant="secondary"
-              className="h-10 min-w-[130px] shadow-sm sm:h-11 sm:min-w-[150px]"
+              className="h-10 flex-1 shadow-sm sm:h-11 sm:flex-none sm:px-5"
             >
-              <Link to="/gio-trai-cay">Đặt giỏ quà</Link>
+              <Link to="/gio-trai-cay" className="inline-flex items-center justify-center">
+                Đặt giỏ quà
+              </Link>
             </Button>
           </div>
-          <div className="grid flex-1 gap-4 sm:grid-cols-3">
+
+          {/* Trust items: flex đều, min-w-0 tránh tràn chữ */}
+          <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-start sm:gap-4">
             <TrustItem
               icon={Leaf}
               title="Hái trong ngày"
@@ -188,12 +193,12 @@ function TrustItem({
     <Link
       to="/cua-hang"
       search={{ nhom }}
-      className="flex gap-3 rounded-xl p-1 transition-colors hover:bg-background/80"
+      className="flex min-w-0 flex-1 gap-2.5 rounded-xl p-1 transition-colors hover:bg-background/80"
     >
       <Icon className="mt-0.5 size-5 shrink-0 text-primary" />
-      <div>
-        <p className="font-medium">{title}</p>
-        <p className="text-sm text-muted-foreground">{text}</p>
+      <div className="min-w-0">
+        <p className="font-medium leading-snug">{title}</p>
+        <p className="text-sm leading-snug text-muted-foreground">{text}</p>
       </div>
     </Link>
   );
