@@ -53,9 +53,7 @@ export function SiteFooter() {
                 Facebook
               </a>
             </li>
-            <li>
-              <Link to="/quan-ly">Kết nối Google Sheet</Link>
-            </li>
+            
           </ul>
         </div>
       </div>
