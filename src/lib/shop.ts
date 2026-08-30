@@ -16,7 +16,9 @@ export const SHOP = {
   facebookMessenger: "https://www.facebook.com/messages/t/774179609114947",
 } as const;
 
-export const BASKET_TIERS = [300_000, 400_000, 500_000, 600_000, 650_000, 700_000, 850_000, 1_000_000] as const;
+export const BASKET_TIERS = [
+  300_000, 350_000, 400_000, 500_000, 600_000, 650_000, 700_000, 750_000, 800_000, 850_000, 1_000_000,
+] as const;
 
 export const BASKET_OCCASIONS = [
   { id: "kinh-cung", label: "Kính cúng" },

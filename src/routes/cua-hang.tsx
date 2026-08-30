@@ -36,8 +36,11 @@ function ShopPage() {
         p.description.toLowerCase().includes(q)
       );
     });
-    // Sắp xếp giá từ thấp đến cao (đặc biệt hữu ích cho giỏ trái cây)
-    return [...list].sort((a, b) => a.price - b.price);
+    // Bán chạy (featured) trước, rồi giá thấp → cao; cùng loại nằm cạnh nhau theo giá
+    return [...list].sort((a, b) => {
+      if (a.featured !== b.featured) return a.featured ? -1 : 1;
+      return a.price - b.price;
+    });
   }, [products, nhom, query]);
 
   return (
