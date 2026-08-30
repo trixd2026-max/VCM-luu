@@ -25,41 +25,21 @@ function Home() {
 
   return (
     <main>
-      <section className="bg-[#e7f4c4]">
-        <img
-          src="/products/panel.jpg"
-          alt="Vườn Của Mít — trái cây, giỏ quà, tráp cưới, hoa viếng"
-          className="mx-auto w-full max-w-6xl object-contain"
-        />
-      </section>
-
-      <section className="border-b border-border bg-card">
-        <div className="mx-auto grid max-w-6xl gap-6 px-4 py-6 sm:grid-cols-3">
-          <TrustItem icon={Leaf} title="Hái trong ngày" text="Cam, quýt, mít, thanh long từ vườn nhà." />
-          <TrustItem icon={Gift} title="Gói giỏ từ 300K" text="Kính cúng, biếu tặng, giỏ hoa trái cây." />
-          <TrustItem icon={Heart} title="Tráp cưới · hoa viếng" text="Set 5 · 7 · 9 tráp, lẵng hoa tang lễ." />
-        </div>
-      </section>
-
-      {/* Panel CTA: Xem cửa hàng + Đặt giỏ quà */}
-      <section className="relative overflow-hidden">
-        <img
-          src="/products/xoai.jpg"
-          alt=""
-          aria-hidden
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-        <div className="absolute inset-0 bg-foreground/55" />
-        <div className="relative mx-auto flex max-w-6xl flex-col items-center px-4 py-16 text-center text-primary-foreground sm:py-20">
-          <p className="text-xs tracking-[0.2em] uppercase opacity-80">
-            Thôn Phụng Sơn · Tuy Phước Đông
-          </p>
-          <h2 className="font-display mt-3 text-4xl sm:text-5xl">{SHOP.name}</h2>
-          <p className="mt-3 max-w-lg text-sm text-primary-foreground/90 sm:text-base">
-            Trái cây hái tại vườn, gói thành giỏ kính cúng và tráp cưới hỏi.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Button asChild size="lg" className="h-12 min-w-[160px] bg-primary text-primary-foreground hover:bg-primary/90">
+      {/* Banner panel + nút nổi */}
+      <section className="relative bg-[#e7f4c4]">
+        <div className="relative mx-auto max-w-6xl">
+          <img
+            src="/products/panel.jpg"
+            alt="Vườn Của Mít — trái cây, giỏ quà, tráp cưới, hoa viếng"
+            className="w-full object-contain"
+          />
+          {/* Nút nổi trên panel */}
+          <div className="absolute inset-x-0 bottom-4 z-10 flex flex-wrap items-center justify-center gap-2 px-4 sm:bottom-8 sm:gap-3">
+            <Button
+              asChild
+              size="lg"
+              className="h-11 min-w-[140px] shadow-lg sm:h-12 sm:min-w-[160px]"
+            >
               <Link to="/cua-hang">
                 Xem cửa hàng
                 <ArrowRight className="ml-1.5 size-4" />
@@ -68,12 +48,20 @@ function Home() {
             <Button
               asChild
               size="lg"
-              variant="outline"
-              className="h-12 min-w-[160px] border-0 bg-primary-foreground/95 text-foreground shadow-none hover:bg-primary-foreground"
+              variant="secondary"
+              className="h-11 min-w-[140px] shadow-lg sm:h-12 sm:min-w-[160px]"
             >
               <Link to="/gio-trai-cay">Đặt giỏ quà</Link>
             </Button>
           </div>
+        </div>
+      </section>
+
+      <section className="border-b border-border bg-card">
+        <div className="mx-auto grid max-w-6xl gap-6 px-4 py-6 sm:grid-cols-3">
+          <TrustItem icon={Leaf} title="Hái trong ngày" text="Cam, quýt, mít, thanh long từ vườn nhà." />
+          <TrustItem icon={Gift} title="Gói giỏ từ 300K" text="Kính cúng, biếu tặng, giỏ hoa trái cây." />
+          <TrustItem icon={Heart} title="Tráp cưới · hoa viếng" text="Set 5 · 7 · 9 tráp, lẵng hoa tang lễ." />
         </div>
       </section>
 
