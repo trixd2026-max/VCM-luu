@@ -12,11 +12,14 @@ import { cn } from "@/lib/utils";
 
 const TIER_IMAGE: Record<number, string> = {
   300_000: "/products/gio-300k.jpg",
+  350_000: "/products/gio-350k.jpg",
   400_000: "/products/gio-400k.jpg",
   500_000: "/products/gio-500k.jpg",
   600_000: "/products/gio-600k.jpg",
   650_000: "/products/gio-650k.jpg",
   700_000: "/products/gio-700k.jpg",
+  750_000: "/products/gio-hoa-750k.jpg",
+  800_000: "/products/gio-hoa-800k.jpg",
   850_000: "/products/gio.jpg",
   1_000_000: "/products/gio-1trieu.jpg",
 };
