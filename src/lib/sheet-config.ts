@@ -10,11 +10,11 @@ export type SheetConfig = {
 };
 
 const empty: SheetConfig = {
-  sheetId: "",
-  csvUrl: "",
+  sheetId: "1PIwNQOmYupdqww3_Y5i1a4sPYpmHs2LNZlWIUlPsb5U",
+  csvUrl: "https://docs.google.com/spreadsheets/d/1PIwNQOmYupdqww3_Y5i1a4sPYpmHs2LNZlWIUlPsb5U/edit?gid=1069887904#gid=1069887904",
   gid: "0",
-  sheetName: "SanPham",
-  webhookUrl: "",
+  sheetName: "san-pham-vuon-cua-mit",
+  webhookUrl: "https://script.google.com/macros/s/AKfycbxzJYDAYzCcZQ1q-RPymdDVBY0NLUIWiq3SjoziSkTX2T1mJjibv3AiCeUv0IO9HKSyVg/exec",
 };
 
 type State = SheetConfig & {
