@@ -41,6 +41,42 @@ function Home() {
         </div>
       </section>
 
+      {/* Panel CTA: Xem cửa hàng + Đặt giỏ quà */}
+      <section className="relative overflow-hidden">
+        <img
+          src="/products/xoai.jpg"
+          alt=""
+          aria-hidden
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-foreground/55" />
+        <div className="relative mx-auto flex max-w-6xl flex-col items-center px-4 py-16 text-center text-primary-foreground sm:py-20">
+          <p className="text-xs tracking-[0.2em] uppercase opacity-80">
+            Thôn Phụng Sơn · Tuy Phước Đông
+          </p>
+          <h2 className="font-display mt-3 text-4xl sm:text-5xl">{SHOP.name}</h2>
+          <p className="mt-3 max-w-lg text-sm text-primary-foreground/90 sm:text-base">
+            Trái cây hái tại vườn, gói thành giỏ kính cúng và tráp cưới hỏi.
+          </p>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <Button asChild size="lg" className="h-12 min-w-[160px] bg-primary text-primary-foreground hover:bg-primary/90">
+              <Link to="/cua-hang">
+                Xem cửa hàng
+                <ArrowRight className="ml-1.5 size-4" />
+              </Link>
+            </Button>
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="h-12 min-w-[160px] border-0 bg-primary-foreground/95 text-foreground shadow-none hover:bg-primary-foreground"
+            >
+              <Link to="/gio-trai-cay">Đặt giỏ quà</Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
       <section className="mx-auto max-w-6xl px-4 py-16">
         <div className="flex items-end justify-between gap-4">
           <div>
