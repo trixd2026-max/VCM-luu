@@ -53,7 +53,6 @@ export function SiteFooter() {
                 Facebook
               </a>
             </li>
-            
           </ul>
         </div>
       </div>
