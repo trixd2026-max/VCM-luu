@@ -33,8 +33,8 @@ function Home() {
             alt="Vườn Của Mít — trái cây, giỏ quà, tráp cưới, hoa viếng"
             className="w-full object-contain"
           />
-          {/* Nút nổi: Xem cửa hàng trên, Đặt giỏ quà dưới */}
-          <div className="absolute bottom-10 left-3 z-10 flex flex-col items-stretch gap-2 sm:bottom-14 sm:left-6">
+          {/* Nút nổi sát góc dưới trái */}
+          <div className="absolute bottom-2 left-2 z-10 flex flex-col items-stretch gap-1.5 sm:bottom-3 sm:left-4 sm:gap-2">
             <Button
               asChild
               size="lg"
