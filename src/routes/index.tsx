@@ -33,11 +33,12 @@ function Home() {
             alt="Vườn Của Mít — trái cây, giỏ quà, tráp cưới, hoa viếng"
             className="w-full object-contain"
           />
-          {/* Nút nổi sát góc dưới trái */}
+          {/* Nút nổi sát góc dưới trái — cả hai nền trắng */}
           <div className="absolute bottom-2 left-2 z-10 flex flex-col items-stretch gap-1.5 sm:bottom-3 sm:left-4 sm:gap-2">
             <Button
               asChild
               size="lg"
+              variant="secondary"
               className="h-10 min-w-[140px] shadow-lg sm:h-11 sm:min-w-[160px]"
             >
               <Link to="/cua-hang">
