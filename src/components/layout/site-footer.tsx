@@ -50,7 +50,7 @@ export function SiteFooter() {
             </li>
             <li>
               <a href={SHOP.facebook} target="_blank" rel="noreferrer">
-                Facebook
+                Facebook 
               </a>
             </li>
           </ul>
