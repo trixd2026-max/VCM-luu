@@ -25,7 +25,7 @@ function Home() {
 
   return (
     <main>
-      {/* Banner panel + nút nổi góc dưới trái */}
+      {/* Banner panel + nút nổi góc dưới trái (xếp dọc) */}
       <section className="relative bg-[#e7f4c4]">
         <div className="relative mx-auto max-w-6xl">
           <img
@@ -33,12 +33,12 @@ function Home() {
             alt="Vườn Của Mít — trái cây, giỏ quà, tráp cưới, hoa viếng"
             className="w-full object-contain"
           />
-          {/* Nút nổi góc dưới bên trái */}
-          <div className="absolute bottom-3 left-3 z-10 flex flex-col gap-2 sm:bottom-6 sm:left-6 sm:flex-row sm:gap-3">
+          {/* Nút nổi: Xem cửa hàng trên, Đặt giỏ quà dưới */}
+          <div className="absolute bottom-10 left-3 z-10 flex flex-col items-stretch gap-2 sm:bottom-14 sm:left-6">
             <Button
               asChild
               size="lg"
-              className="h-10 min-w-[130px] shadow-lg sm:h-11 sm:min-w-[150px]"
+              className="h-10 min-w-[140px] shadow-lg sm:h-11 sm:min-w-[160px]"
             >
               <Link to="/cua-hang">
                 Xem cửa hàng
@@ -49,7 +49,7 @@ function Home() {
               asChild
               size="lg"
               variant="secondary"
-              className="h-10 min-w-[130px] shadow-lg sm:h-11 sm:min-w-[150px]"
+              className="h-10 min-w-[140px] shadow-lg sm:h-11 sm:min-w-[160px]"
             >
               <Link to="/gio-trai-cay">Đặt giỏ quà</Link>
             </Button>
