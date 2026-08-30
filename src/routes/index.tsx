@@ -5,7 +5,7 @@ import { ProductCard } from "@/components/product-card";
 import { SHOP, BASKET_TIERS } from "@/lib/shop";
 import { useCatalog } from "@/lib/catalog-store";
 import { formatVnd } from "@/lib/format";
-import { CATEGORIES } from "@/lib/catalog";
+import { CATEGORIES, type CategoryId } from "@/lib/catalog";
 
 export const Route = createFileRoute("/")({ component: Home });
 
@@ -25,19 +25,59 @@ function Home() {
 
   return (
     <main>
-      <section className="bg-[#e7f4c4]">
-        <img
-          src="/products/panel.jpg"
-          alt="Vườn Của Mít — trái cây, giỏ quà, tráp cưới, hoa viếng"
-          className="mx-auto w-full max-w-6xl object-contain"
-        />
+      {/* Banner panel + nút nổi góc dưới trái (xếp dọc) */}
+      <section className="relative bg-[#e7f4c4]">
+        <div className="relative mx-auto max-w-6xl">
+          <img
+            src="/products/panel.jpg"
+            alt="Vườn Của Mít — trái cây, giỏ quà, tráp cưới, hoa viếng"
+            className="w-full object-contain"
+          />
+          {/* Nút nổi sát góc dưới trái — cả hai nền trắng */}
+          <div className="absolute bottom-2 left-2 z-10 flex flex-col items-stretch gap-1.5 sm:bottom-3 sm:left-4 sm:gap-2">
+            <Button
+              asChild
+              size="lg"
+              variant="secondary"
+              className="h-10 min-w-[140px] shadow-lg sm:h-11 sm:min-w-[160px]"
+            >
+              <Link to="/cua-hang">
+                Xem cửa hàng
+                <ArrowRight className="ml-1.5 size-4" />
+              </Link>
+            </Button>
+            <Button
+              asChild
+              size="lg"
+              variant="secondary"
+              className="h-10 min-w-[140px] shadow-lg sm:h-11 sm:min-w-[160px]"
+            >
+              <Link to="/gio-trai-cay">Đặt giỏ quà</Link>
+            </Button>
+          </div>
+        </div>
       </section>
 
       <section className="border-b border-border bg-card">
         <div className="mx-auto grid max-w-6xl gap-6 px-4 py-6 sm:grid-cols-3">
-          <TrustItem icon={Leaf} title="Hái trong ngày" text="Cam, quýt, mít, thanh long từ vườn nhà." />
-          <TrustItem icon={Gift} title="Gói giỏ từ 300K" text="Kính cúng, biếu tặng, giỏ hoa trái cây." />
-          <TrustItem icon={Heart} title="Tráp cưới · hoa viếng" text="Set 5 · 7 · 9 tráp, lẵng hoa tang lễ." />
+          <TrustItem
+            icon={Leaf}
+            title="Hái trong ngày"
+            text="Cam, quýt, mít, thanh long từ vườn nhà."
+            nhom="trai-cay-vuon"
+          />
+          <TrustItem
+            icon={Gift}
+            title="Gói giỏ từ 300K"
+            text="Kính cúng, biếu tặng, giỏ hoa trái cây."
+            nhom="gio-trai-cay"
+          />
+          <TrustItem
+            icon={Heart}
+            title="Tráp cưới · hoa viếng"
+            text="Set 5 · 7 · 9 tráp, lẵng hoa tang lễ."
+            nhom="trap-cuoi"
+          />
         </div>
       </section>
 
@@ -135,18 +175,24 @@ function TrustItem({
   icon: Icon,
   title,
   text,
+  nhom,
 }: {
   icon: typeof Leaf;
   title: string;
   text: string;
+  nhom: CategoryId;
 }) {
   return (
-    <div className="flex gap-3">
+    <Link
+      to="/cua-hang"
+      search={{ nhom }}
+      className="flex gap-3 rounded-xl p-1 transition-colors hover:bg-background/80"
+    >
       <Icon className="mt-0.5 size-5 shrink-0 text-primary" />
       <div>
         <p className="font-medium">{title}</p>
         <p className="text-sm text-muted-foreground">{text}</p>
       </div>
-    </div>
+    </Link>
   );
 }

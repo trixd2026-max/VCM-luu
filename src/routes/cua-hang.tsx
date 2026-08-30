@@ -28,18 +28,14 @@ function ShopPage() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const list = products.filter((p) => {
+    // Giữ đúng thứ tự trong catalog (không sort lại theo giá)
+    return products.filter((p) => {
       if (nhom && p.category !== nhom) return false;
       if (!q) return true;
       return (
         p.name.toLowerCase().includes(q) ||
         p.description.toLowerCase().includes(q)
       );
-    });
-    // Bán chạy (featured) trước, rồi giá thấp → cao; cùng loại nằm cạnh nhau theo giá
-    return [...list].sort((a, b) => {
-      if (a.featured !== b.featured) return a.featured ? -1 : 1;
-      return a.price - b.price;
     });
   }, [products, nhom, query]);
 
