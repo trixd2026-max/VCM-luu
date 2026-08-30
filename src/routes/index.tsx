@@ -25,7 +25,7 @@ function Home() {
 
   return (
     <main>
-      {/* Banner panel + nút nổi góc dưới trái (xếp dọc) */}
+      {/* Banner — không còn nút chồng lên ảnh */}
       <section className="relative bg-[#e7f4c4]">
         <div className="relative mx-auto max-w-6xl">
           <img
@@ -33,13 +33,18 @@ function Home() {
             alt="Vườn Của Mít — trái cây, giỏ quà, tráp cưới, hoa viếng"
             className="w-full object-contain"
           />
-          {/* Nút nổi sát góc dưới trái — cả hai nền trắng */}
-          <div className="absolute bottom-2 left-2 z-10 flex flex-col items-stretch gap-1.5 sm:bottom-3 sm:left-4 sm:gap-2">
+        </div>
+      </section>
+
+      {/* Nút + hàng trust cùng một dòng */}
+      <section className="border-b border-border bg-card">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:gap-6 sm:py-5">
+          <div className="flex shrink-0 flex-wrap gap-2">
             <Button
               asChild
               size="lg"
               variant="secondary"
-              className="h-10 min-w-[140px] shadow-lg sm:h-11 sm:min-w-[160px]"
+              className="h-10 min-w-[130px] shadow-sm sm:h-11 sm:min-w-[150px]"
             >
               <Link to="/cua-hang">
                 Xem cửa hàng
@@ -50,34 +55,31 @@ function Home() {
               asChild
               size="lg"
               variant="secondary"
-              className="h-10 min-w-[140px] shadow-lg sm:h-11 sm:min-w-[160px]"
+              className="h-10 min-w-[130px] shadow-sm sm:h-11 sm:min-w-[150px]"
             >
               <Link to="/gio-trai-cay">Đặt giỏ quà</Link>
             </Button>
           </div>
-        </div>
-      </section>
-
-      <section className="border-b border-border bg-card">
-        <div className="mx-auto grid max-w-6xl gap-6 px-4 py-6 sm:grid-cols-3">
-          <TrustItem
-            icon={Leaf}
-            title="Hái trong ngày"
-            text="Cam, quýt, mít, thanh long từ vườn nhà."
-            nhom="trai-cay-vuon"
-          />
-          <TrustItem
-            icon={Gift}
-            title="Gói giỏ từ 300K"
-            text="Kính cúng, biếu tặng, giỏ hoa trái cây."
-            nhom="gio-trai-cay"
-          />
-          <TrustItem
-            icon={Heart}
-            title="Tráp cưới · hoa viếng"
-            text="Set 5 · 7 · 9 tráp, lẵng hoa tang lễ."
-            nhom="trap-cuoi"
-          />
+          <div className="grid flex-1 gap-4 sm:grid-cols-3">
+            <TrustItem
+              icon={Leaf}
+              title="Hái trong ngày"
+              text="Cam, quýt, mít, thanh long từ vườn nhà."
+              nhom="trai-cay-vuon"
+            />
+            <TrustItem
+              icon={Gift}
+              title="Gói giỏ từ 300K"
+              text="Kính cúng, biếu tặng, giỏ hoa trái cây."
+              nhom="gio-trai-cay"
+            />
+            <TrustItem
+              icon={Heart}
+              title="Tráp cưới · hoa viếng"
+              text="Set 5 · 7 · 9 tráp, lẵng hoa tang lễ."
+              nhom="trap-cuoi"
+            />
+          </div>
         </div>
       </section>
 
