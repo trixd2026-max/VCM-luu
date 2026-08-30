@@ -152,9 +152,9 @@ function Home() {
             <p className="text-xs tracking-[0.2em] uppercase opacity-70">Câu chuyện</p>
             <h2 className="font-display mt-2 text-4xl italic">{SHOP.name}</h2>
             <p className="mt-4 text-primary-foreground/85">
-              Vườn Của Mít lấy trái trong ngày: cam, quýt, bưởi, lê, xoài, thanh long
-              và mít Thái. Có trái nhập — kiwi, táo, dưa hấu Kiều Farm — để gói giỏ cho
-              đủ sắc. Giao tại Thôn Phụng Sơn, xã Tuy Phước Đông.
+              Vườn Của Mít chuyên bán trái cây hữu cơ, trái cây nhập khẩu, nhận làm giỏ
+              trái cây, tráp cưới, hoa viếng tang. Địa chỉ: Xóm 1B, thôn Phụng Sơn, xã
+              Tuy Phước Đông.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild size="lg" variant="secondary">
