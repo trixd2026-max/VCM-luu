@@ -384,7 +384,20 @@ export const LOCAL_PRODUCTS: Product[] = [
     inStock: true,
     discount: 0,
   },
-  // —— Giỏ trái cây (giá thấp → cao; giỏ thường rồi giỏ hoa) ——
+  // —— Giỏ trái cây (Giỏ nghệ thuật ưu tiên đầu; sau đó giá thấp → cao) ——
+  {
+    id: "gio-nghe-thuat",
+    name: "Giỏ trái cây nghệ thuật",
+    category: "gio-trai-cay",
+    price: 850_000,
+    unit: "giỏ",
+    description:
+      "Giỏ nghệ thuật mix nho, táo, cam, kiwi — gói theo mẫu. Nhận thiết kế theo ngân sách.",
+    image: "/products/gio.jpg",
+    featured: true,
+    inStock: true,
+    discount: 0,
+  },
   {
     id: "gio-300",
     name: "Giỏ trái cây 300.000đ",
@@ -520,19 +533,6 @@ export const LOCAL_PRODUCTS: Product[] = [
     description:
       "Giỏ hoa hồng pastel + nho, cam, lê, táo. Voan hồng, thiệp chúc mừng — sinh nhật, biếu sếp.",
     image: "/products/gio-hoa-800k.jpg",
-    featured: true,
-    inStock: true,
-    discount: 0,
-  },
-  {
-    id: "gio-nghe-thuat",
-    name: "Giỏ trái cây nghệ thuật",
-    category: "gio-trai-cay",
-    price: 850_000,
-    unit: "giỏ",
-    description:
-      "Giỏ nghệ thuật mix nho, táo, cam, kiwi — gói theo mẫu. Nhận thiết kế theo ngân sách.",
-    image: "/products/gio.jpg",
     featured: true,
     inStock: true,
     discount: 0,
