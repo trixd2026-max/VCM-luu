@@ -1,9 +1,17 @@
+import { Phone } from "lucide-react";
 import { SHOP } from "@/lib/shop";
 import { ZaloGlyph } from "@/components/zalo-icon";
 
 export function ZaloFab() {
   return (
     <div className="fixed right-4 bottom-20 z-30 flex flex-col gap-3 md:bottom-6">
+      <a
+        href={`tel:${SHOP.phone}`}
+        aria-label={`Gọi ${SHOP.owner} ${SHOP.phoneDisplay}`}
+        className="grid size-14 place-items-center rounded-full bg-[#22c55e] text-white shadow-lg"
+      >
+        <Phone className="size-7" strokeWidth={2.25} />
+      </a>
       <a
         href={SHOP.facebookMessenger}
         target="_blank"
