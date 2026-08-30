@@ -60,8 +60,10 @@ export function CartDrawer({
               <p className="mt-1 max-w-[240px] text-xs text-muted-foreground">
                 Ghé cửa hàng chọn trái cây hoặc đặt giỏ quà.
               </p>
-              <Button asChild className="mt-6" onClick={onClose}>
-                <Link to="/cua-hang">Xem cửa hàng</Link>
+              <Button asChild className="mt-6">
+                <Link to="/cua-hang" onClick={onClose}>
+                  Xem cửa hàng
+                </Link>
               </Button>
             </div>
           ) : (
@@ -70,10 +72,8 @@ export function CartDrawer({
                 const lineTotal = line.price * line.qty;
                 return (
                   <li key={line.id} className="flex gap-3">
-                    <div className="size-18 shrink-0 overflow-hidden rounded-lg bg-muted sm:size-20">
-                      <div className="size-20 overflow-hidden rounded-lg bg-muted">
-                        <ProductImage src={line.image} alt={line.name} />
-                      </div>
+                    <div className="size-20 shrink-0 overflow-hidden rounded-lg bg-muted">
+                      <ProductImage src={line.image} alt={line.name} />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start justify-between gap-2">
@@ -136,8 +136,10 @@ export function CartDrawer({
               </Button>
             </>
           ) : (
-            <Button asChild variant="outline" className="w-full" onClick={onClose}>
-              <Link to="/gio-trai-cay">Đặt giỏ quà</Link>
+            <Button asChild variant="outline" className="w-full">
+              <Link to="/gio-trai-cay" onClick={onClose}>
+                Đặt giỏ quà
+              </Link>
             </Button>
           )}
         </footer>
