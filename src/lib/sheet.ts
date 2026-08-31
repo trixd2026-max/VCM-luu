@@ -35,7 +35,7 @@ async function fetchText(url: string) {
 function sheetUrls(input: SheetConfigInput): string[] {
   const urls: string[] = [];
   const csvUrl = input.csvUrl?.trim();
-  if (csvUrl) urls.push(csvUrl);
+  if (csvUrl && !csvUrl.includes("/edit")) urls.push(csvUrl);
 
   const id = input.sheetId?.trim();
   if (id) {
@@ -85,6 +85,14 @@ export const fetchCatalog = createServerFn({ method: "POST" })
     };
   });
 
+export type OrderLinePayload = {
+  productId: string;
+  name: string;
+  qty: number;
+  unit: string;
+  price: number;
+};
+
 export type OrderPayload = {
   orderId: string;
   name: string;
@@ -93,6 +101,8 @@ export type OrderPayload = {
   note: string;
   total: number;
   items: string;
+  /** JSON chi tiết để Apps Script trừ tồn */
+  itemsJson: string;
   type: string;
   createdAt: string;
 };
