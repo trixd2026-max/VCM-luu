@@ -153,8 +153,10 @@ function Home() {
             <h2 className="font-display mt-2 text-4xl italic">{SHOP.name}</h2>
             <p className="mt-4 max-w-prose text-justify text-primary-foreground/85 leading-relaxed">
               Vườn Của Mít chuyên bán trái cây hữu cơ, trái cây nhập khẩu, nhận làm giỏ
-              trái cây, tráp cưới, hoa viếng tang. Địa chỉ: Xóm 1B, thôn Phụng Sơn, xã
-              Tuy Phước Đông.
+              trái cây, tráp cưới, hoa viếng tang.
+            </p>
+            <p className="mt-2 max-w-prose text-justify text-primary-foreground/85 leading-relaxed">
+              Địa chỉ: Xóm 1B, thôn Phụng Sơn, xã Tuy Phước Đông.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild size="lg" variant="secondary">
