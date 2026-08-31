@@ -1,26 +1,30 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { BASKET_OCCASIONS, BASKET_TIERS } from "@/lib/shop";
+import { BASKET_OCCASIONS, getBasketTiers } from "@/lib/shop";
 import { formatVnd } from "@/lib/format";
 import { useCart } from "@/lib/cart";
 import { useCatalog } from "@/lib/catalog-store";
 import { cn } from "@/lib/utils";
 
-const TIER_IMAGE: Record<number, string> = {
+/** Ảnh dự phòng khi Sheet chưa gắn hình cho mức giá */
+const FALLBACK_TIER_IMAGE: Record<number, string> = {
   300_000: "/products/gio-300k.jpg",
   350_000: "/products/gio-350k.jpg",
   400_000: "/products/gio-400k.jpg",
+  450_000: "/products/gio-gc450.jpg",
   500_000: "/products/gio-500k.jpg",
+  550_000: "/products/gio-gc550.jpg",
   600_000: "/products/gio-600k.jpg",
   650_000: "/products/gio-650k.jpg",
   700_000: "/products/gio-700k.jpg",
   750_000: "/products/gio-hoa-750k.jpg",
   800_000: "/products/gio-hoa-800k.jpg",
   850_000: "/products/gio.jpg",
+  900_000: "/products/gio-900k.jpg",
   1_000_000: "/products/gio-1trieu.jpg",
 };
 
@@ -36,17 +40,50 @@ export const Route = createFileRoute("/gio-trai-cay")({
 function BasketPage() {
   const search = Route.useSearch();
   const products = useCatalog((s) => s.products);
+  const load = useCatalog((s) => s.load);
+  const loaded = useCatalog((s) => s.loaded);
   const addCustom = useCart((s) => s.addCustom);
-  const initial = Number(search.muc) || 300_000;
-  const [tier, setTier] = useState(
-    BASKET_TIERS.includes(initial as (typeof BASKET_TIERS)[number]) ? initial : 500_000,
-  );
+
+  useEffect(() => {
+    if (!loaded) void load();
+  }, [loaded, load]);
+
+  const tiers = useMemo(() => getBasketTiers(products), [products]);
+  const tierPrices = useMemo(() => tiers.map((t) => t.price), [tiers]);
+
+  const initialFromUrl = Number(search.muc) || 0;
+  const defaultTier =
+    (initialFromUrl && tierPrices.includes(initialFromUrl)
+      ? initialFromUrl
+      : tierPrices[0]) || 500_000;
+
+  const [tier, setTier] = useState(defaultTier);
   const [occasion, setOccasion] = useState("bieu-tang");
   const [picks, setPicks] = useState<string[]>([]);
   const [message, setMessage] = useState("");
   const [when, setWhen] = useState("");
 
-  const fruits = products.filter((p) => p.category === "trai-cay-vuon" || p.category === "trai-cay-nhap");
+  // Khi catalog / URL đổi → chọn lại mức hợp lệ
+  useEffect(() => {
+    if (tierPrices.length === 0) return;
+    if (!tierPrices.includes(tier)) {
+      setTier(
+        initialFromUrl && tierPrices.includes(initialFromUrl)
+          ? initialFromUrl
+          : tierPrices[0],
+      );
+    }
+  }, [tierPrices, tier, initialFromUrl]);
+
+  const selected = tiers.find((t) => t.price === tier);
+  const heroImage =
+    selected?.product?.image ||
+    FALLBACK_TIER_IMAGE[tier] ||
+    "/products/gio.jpg";
+
+  const fruits = products.filter(
+    (p) => p.category === "trai-cay-vuon" || p.category === "trai-cay-nhap",
+  );
 
   function toggle(id: string) {
     setPicks((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
@@ -55,15 +92,24 @@ function BasketPage() {
   function addBasket() {
     const occ = BASKET_OCCASIONS.find((o) => o.id === occasion)?.label ?? occasion;
     const names = fruits.filter((f) => picks.includes(f.id)).map((f) => f.name);
-    const note = [occ, names.length ? `Ưu tiên: ${names.join(", ")}` : "Trái theo ngày", message, when ? `Giao: ${when}` : ""]
+    const note = [
+      occ,
+      names.length ? `Ưu tiên: ${names.join(", ")}` : "Trái theo ngày",
+      message,
+      when ? `Giao: ${when}` : "",
+      selected?.product ? `Mẫu: ${selected.product.name}` : "",
+    ]
       .filter(Boolean)
       .join(" · ");
+
     addCustom({
-      id: `gio-custom-${tier}-${Date.now()}`,
-      name: `Giỏ trái cây ${formatVnd(tier)}`,
+      id: selected?.product
+        ? `gio-${selected.product.id}-${Date.now()}`
+        : `gio-custom-${tier}-${Date.now()}`,
+      name: selected?.product?.name ?? `Giỏ trái cây ${formatVnd(tier)}`,
       price: tier,
       unit: "giỏ",
-      image: TIER_IMAGE[tier] ?? "/products/gio.jpg",
+      image: heroImage,
       note,
     });
     toast.success("Đã thêm giỏ vào hàng");
@@ -74,31 +120,38 @@ function BasketPage() {
       <p className="text-xs tracking-wide text-muted-foreground uppercase">Dịch vụ gói</p>
       <h1 className="font-display mt-1 text-4xl">Giỏ trái cây theo ý</h1>
       <p className="mt-3 text-muted-foreground">
-        Kính cúng, biếu tặng từ 300 nghìn đến 1 triệu đồng. Gói giấy kính, nơ, hoa —
-        giao đúng giờ nếu báo trước.
+        Kính cúng, biếu tặng — mức giá đồng bộ từ cửa hàng (Google Sheet). Gói giấy kính, nơ,
+        hoa — giao đúng giờ nếu báo trước.
       </p>
 
       <div className="mt-8 overflow-hidden rounded-2xl">
         <img
-          src={TIER_IMAGE[tier] ?? "/products/gio.jpg"}
-          alt="Giỏ trái cây"
+          src={heroImage}
+          alt={selected?.product?.name ?? "Giỏ trái cây"}
           className="aspect-video w-full object-cover"
         />
       </div>
 
+      {selected?.product ? (
+        <p className="mt-3 text-sm text-muted-foreground">
+          Mẫu tham chiếu: <span className="font-medium text-foreground">{selected.product.name}</span>
+          {selected.product.description ? ` — ${selected.product.description}` : ""}
+        </p>
+      ) : null}
+
       <h2 className="font-display mt-10 text-xl">Chọn mức</h2>
       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
-        {BASKET_TIERS.map((t) => (
+        {tiers.map(({ price }) => (
           <button
-            key={t}
+            key={price}
             type="button"
-            onClick={() => setTier(t)}
+            onClick={() => setTier(price)}
             className={cn(
               "h-14 rounded-xl text-sm tabular-nums",
-              tier === t ? "bg-primary text-primary-foreground" : "bg-card",
+              tier === price ? "bg-primary text-primary-foreground" : "bg-card",
             )}
           >
-            {formatVnd(t)}
+            {formatVnd(price)}
           </button>
         ))}
       </div>

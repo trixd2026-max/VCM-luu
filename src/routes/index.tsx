@@ -1,8 +1,9 @@
+import { useEffect, useMemo } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Gift, Heart, Leaf } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/product-card";
-import { SHOP, BASKET_TIERS } from "@/lib/shop";
+import { SHOP, getBasketTiers } from "@/lib/shop";
 import { useCatalog } from "@/lib/catalog-store";
 import { formatVnd } from "@/lib/format";
 import { CATEGORIES, type CategoryId } from "@/lib/catalog";
@@ -11,6 +12,13 @@ export const Route = createFileRoute("/")({ component: Home });
 
 function Home() {
   const products = useCatalog((s) => s.products);
+  const load = useCatalog((s) => s.load);
+  const loaded = useCatalog((s) => s.loaded);
+
+  useEffect(() => {
+    if (!loaded) void load();
+  }, [loaded, load]);
+
   const featuredFruit = products
     .filter((p) => p.featured && (p.category === "trai-cay-vuon" || p.category === "trai-cay-nhap"))
     .slice(0, 4);
@@ -22,6 +30,8 @@ function Home() {
     )
     .slice(0, 4);
   const featured = [...featuredFruit, ...featuredGifts];
+
+  const basketTiers = useMemo(() => getBasketTiers(products), [products]);
 
   return (
     <main>
@@ -126,17 +136,17 @@ function Home() {
         <p className="text-xs tracking-wide text-muted-foreground uppercase">Giỏ biếu · kính cúng</p>
         <h2 className="font-display mt-1 text-3xl">Mẫu giỏ gói sẵn</h2>
         <p className="mt-2 max-w-xl text-muted-foreground">
-          Chọn mức, ghi dịp và lời nhắn — chị Hằng gói theo trái đang ngon trong ngày.
+          Chọn mức đồng bộ từ cửa hàng — chị Hằng gói theo trái đang ngon trong ngày.
         </p>
         <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-          {BASKET_TIERS.map((tier) => (
+          {basketTiers.map(({ price }) => (
             <Link
-              key={tier}
+              key={price}
               to="/gio-trai-cay"
-              search={{ muc: String(tier) }}
+              search={{ muc: String(price) }}
               className="rounded-2xl bg-card px-4 py-6 text-center shadow-[var(--shadow-border)]"
             >
-              <p className="font-display text-2xl tabular-nums">{formatVnd(tier)}</p>
+              <p className="font-display text-2xl tabular-nums">{formatVnd(price)}</p>
               <p className="mt-1 text-xs text-muted-foreground">Đặt giỏ này</p>
             </Link>
           ))}

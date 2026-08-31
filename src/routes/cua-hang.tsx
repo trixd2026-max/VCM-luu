@@ -1,8 +1,9 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Search } from "lucide-react";
 import { CATEGORIES, type CategoryId } from "@/lib/catalog";
 import { useCatalog } from "@/lib/catalog-store";
+import { isPlaceholderBasket } from "@/lib/shop";
 import { ProductCard } from "@/components/product-card";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -23,17 +24,26 @@ function ShopPage() {
   const products = useCatalog((s) => s.products);
   const warning = useCatalog((s) => s.warning);
   const source = useCatalog((s) => s.source);
+  const load = useCatalog((s) => s.load);
+  const loaded = useCatalog((s) => s.loaded);
   const [query, setQuery] = useState(search.q ?? "");
   const nhom = (search.nhom as CategoryId | undefined) ?? undefined;
+
+  useEffect(() => {
+    if (!loaded) void load();
+  }, [loaded, load]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     // Giữ đúng thứ tự trong catalog (không sort lại theo giá)
     return products.filter((p) => {
       if (nhom && p.category !== nhom) return false;
+      // Ẩn dòng placeholder GC/GH trung gian trừ khi đang tìm đúng mã
+      if (!q && isPlaceholderBasket(p)) return false;
       if (!q) return true;
       return (
         p.name.toLowerCase().includes(q) ||
+        p.id.toLowerCase().includes(q) ||
         p.description.toLowerCase().includes(q)
       );
     });
