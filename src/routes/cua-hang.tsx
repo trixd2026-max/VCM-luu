@@ -3,7 +3,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Search } from "lucide-react";
 import { CATEGORIES, type CategoryId } from "@/lib/catalog";
 import { useCatalog } from "@/lib/catalog-store";
-import { isPlaceholderBasket } from "@/lib/shop";
 import { ProductCard } from "@/components/product-card";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -35,11 +34,10 @@ function ShopPage() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    // Giữ đúng thứ tự trong catalog (không sort lại theo giá)
+    // Giữ đúng thứ tự Sheet — chỉ ẩn khi con_hang = 0 (inStock=false)
     return products.filter((p) => {
+      if (!p.inStock) return false;
       if (nhom && p.category !== nhom) return false;
-      // Ẩn dòng placeholder GC/GH trung gian trừ khi đang tìm đúng mã
-      if (!q && isPlaceholderBasket(p)) return false;
       if (!q) return true;
       return (
         p.name.toLowerCase().includes(q) ||
@@ -57,10 +55,16 @@ function ShopPage() {
         Giá theo ngày. Đặt giỏ hoặc gọi chị Hằng để chọn trái đang ngon.
       </p>
       {source === "sheet" ? (
-        <p className="mt-3 text-xs text-primary">Đã đồng bộ từ Google Sheet</p>
+        <p className="mt-3 text-xs text-primary">
+          Đã đồng bộ từ Google Sheet · {filtered.length} sản phẩm đang hiện
+        </p>
       ) : warning ? (
         <p className="mt-3 text-xs text-muted-foreground">{warning}</p>
-      ) : null}
+      ) : (
+        <p className="mt-3 text-xs text-muted-foreground">
+          Đang dùng bảng mẫu — vào /quan-ly để kết nối Sheet
+        </p>
+      )}
 
       <div className="relative mt-8 max-w-md">
         <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />

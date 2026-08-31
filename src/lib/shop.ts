@@ -38,22 +38,6 @@ export const BASKET_OCCASIONS = [
   { id: "kinh-vieng", label: "Kính viếng" },
 ] as const;
 
-/** Mô tả generic của dòng placeholder GC/GH trung gian trên Sheet */
-const PLACEHOLDER_DESC = "trao vị ngọt, gửi yêu thương";
-
-/** Bỏ các dòng GC410–GC590 / GH610–GH790 chỉ là placeholder giá */
-export function isPlaceholderBasket(p: Product): boolean {
-  if (p.category !== "gio-trai-cay") return false;
-  const desc = (p.description ?? "").toLowerCase();
-  if (desc.includes(PLACEHOLDER_DESC)) return true;
-  // Mã kiểu gc410, gh670… (bước 10k, không phải mức chính)
-  if (/^(gc|gh)\d{3}$/i.test(p.id)) {
-    const n = Number(p.id.slice(2));
-    if (Number.isFinite(n) && n % 50 !== 0 && n % 100 !== 0) return true;
-  }
-  return false;
-}
-
 export type BasketTierOption = {
   price: number;
   product?: Product;
@@ -61,25 +45,22 @@ export type BasketTierOption = {
 
 /**
  * Lấy danh sách mức giỏ quà từ catalog (Sheet / local).
- * - Chỉ lấy category gio-trai-cay, còn hàng
- * - Bỏ placeholder
- * - Gộp trùng giá: ưu tiên featured
- * - Sắp xếp tăng dần
+ * Nguồn đúng = Sheet: mọi dòng gio-trai-cay còn hàng (con_hang=1).
+ * Gộp trùng giá → ưu tiên noi_bat=1.
  */
 export function getBasketTiers(products: Product[]): BasketTierOption[] {
   const baskets = products.filter(
-    (p) => p.category === "gio-trai-cay" && p.inStock && !isPlaceholderBasket(p),
+    (p) => p.category === "gio-trai-cay" && p.inStock && p.price > 0,
   );
 
   const byPrice = new Map<number, Product>();
   for (const p of baskets) {
-    if (!p.price || p.price <= 0) continue;
     const existing = byPrice.get(p.price);
     if (!existing) {
       byPrice.set(p.price, p);
       continue;
     }
-    // Ưu tiên nổi bật; nếu ngang thì giữ cái đã có (thứ tự sheet)
+    // Ưu tiên nổi bật
     if (p.featured && !existing.featured) byPrice.set(p.price, p);
   }
 

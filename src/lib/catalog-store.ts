@@ -10,6 +10,8 @@ type CatalogState = {
   loading: boolean;
   loaded: boolean;
   load: () => Promise<void>;
+  /** Ép đọc lại Sheet (bỏ qua cờ loaded) */
+  reload: () => Promise<void>;
 };
 
 export const useCatalog = create<CatalogState>((set, get) => ({
@@ -18,10 +20,20 @@ export const useCatalog = create<CatalogState>((set, get) => ({
   loading: false,
   loaded: false,
   load: async () => {
+    if (get().loaded || get().loading) return;
+    await get().reload();
+  },
+  reload: async () => {
     const cfg = useSheetConfig.getState();
     const hasSheet = Boolean(cfg.sheetId.trim() || cfg.csvUrl.trim());
     if (!hasSheet) {
-      set({ products: LOCAL_PRODUCTS, source: "local", loaded: true, warning: undefined, loading: false });
+      set({
+        products: LOCAL_PRODUCTS,
+        source: "local",
+        loaded: true,
+        warning: undefined,
+        loading: false,
+      });
       return;
     }
     if (get().loading) return;
@@ -30,7 +42,13 @@ export const useCatalog = create<CatalogState>((set, get) => ({
       const result = await fetchCatalog({
         data: {
           sheetId: cfg.sheetId.trim() || undefined,
-          csvUrl: cfg.csvUrl.trim() || undefined,
+          // Chỉ truyền csvUrl nếu là link export/csv thật, không phải /edit
+          csvUrl: (() => {
+            const u = cfg.csvUrl.trim();
+            if (!u) return undefined;
+            if (u.includes("/edit")) return undefined;
+            return u;
+          })(),
           gid: cfg.gid.trim() || undefined,
           sheetName: cfg.sheetName.trim() || undefined,
         },
