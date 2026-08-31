@@ -29,20 +29,33 @@ const SCRIPT = `function doPost(e) {
 
 function AdminPage() {
   const cfg = useSheetConfig();
-  const load = useCatalog((s) => s.load);
+  const reload = useCatalog((s) => s.reload);
   const source = useCatalog((s) => s.source);
   const warning = useCatalog((s) => s.warning);
   const loading = useCatalog((s) => s.loading);
+  const products = useCatalog((s) => s.products);
   const [sheetId, setSheetId] = useState(cfg.sheetId);
   const [csvUrl, setCsvUrl] = useState(cfg.csvUrl);
   const [sheetName, setSheetName] = useState(cfg.sheetName);
   const [gid, setGid] = useState(cfg.gid);
   const [webhookUrl, setWebhookUrl] = useState(cfg.webhookUrl);
 
-  function save() {
-    cfg.setConfig({ sheetId, csvUrl, sheetName, gid, webhookUrl });
-    toast.success("Đã lưu cấu hình");
-    void load();
+  async function save() {
+    cfg.setConfig({
+      sheetId: sheetId.trim(),
+      // Bỏ URL /edit — chỉ nhận CSV export thật
+      csvUrl: csvUrl.includes("/edit") ? "" : csvUrl.trim(),
+      sheetName: sheetName.trim(),
+      gid: gid.trim(),
+      webhookUrl: webhookUrl.trim(),
+    });
+    await reload();
+    const st = useCatalog.getState();
+    if (st.source === "sheet") {
+      toast.success(`Đã đồng bộ Sheet · ${st.products.length} sản phẩm`);
+    } else {
+      toast.error(st.warning || "Chưa đọc được Sheet — kiểm tra chia sẻ & tên tab");
+    }
   }
 
   function downloadCsv() {
@@ -55,16 +68,21 @@ function AdminPage() {
     URL.revokeObjectURL(url);
   }
 
+  const basketCount = products.filter((p) => p.category === "gio-trai-cay" && p.inStock).length;
+
   return (
     <main className="mx-auto max-w-2xl px-4 py-10">
       <p className="text-xs tracking-wide text-muted-foreground uppercase">Chủ cửa hàng</p>
       <h1 className="font-display mt-1 text-4xl">Google Sheet</h1>
       <p className="mt-3 text-sm text-muted-foreground">
         Kết nối Google Sheet để sửa giá, thêm sản phẩm, ẩn hết hàng — web tự cập nhật.
-        Mức giá trang <strong>Giỏ quà</strong> cũng lấy từ các dòng <code>gio-trai-cay</code> trên Sheet.
+        Mức giá trang <strong>Giỏ quà</strong> lấy từ các dòng <code>gio-trai-cay</code> còn hàng.
       </p>
       <p className="mt-2 text-xs text-muted-foreground">
-        Nguồn hiện tại: {source === "sheet" ? "Google Sheet" : "bảng mẫu"}
+        Nguồn hiện tại:{" "}
+        {source === "sheet"
+          ? `Google Sheet · ${products.length} SP · ${basketCount} giỏ trái cây`
+          : "bảng mẫu"}
         {warning ? ` · ${warning}` : ""}
       </p>
 
@@ -74,20 +92,20 @@ function AdminPage() {
         <li>Mở Google Trang tính → Tệp → Nhập → tải file CSV lên (nếu tạo mới).</li>
         <li>
           Chia sẻ bảng: <strong>Bất kỳ ai có liên kết</strong> → quyền <strong>Người xem</strong>
-          (bắt buộc, không thì web không đọc được).
+          (bắt buộc).
         </li>
         <li>
-          Copy <strong>Sheet ID</strong> trên thanh địa chỉ — đoạn giữa{" "}
-          <code>/d/</code> và <code>/edit</code>.
+          Copy <strong>Sheet ID</strong> trên thanh địa chỉ — đoạn giữa <code>/d/</code> và{" "}
+          <code>/edit</code>.
         </li>
         <li>
           Điền <strong>Tên tab</strong> đúng với tab sản phẩm (vd.{" "}
           <code>san-pham-vuon-cua-mit</code>).
         </li>
-        <li>Bấm <strong>Lưu và đồng bộ</strong> — dòng “Nguồn hiện tại” phải hiện Google Sheet.</li>
+        <li>Bấm <strong>Lưu và đồng bộ</strong> — phải hiện “Google Sheet · … SP”.</li>
       </ol>
 
-      <h2 className="font-display mt-10 text-xl">2. Cột trên Sheet (bắt buộc)</h2>
+      <h2 className="font-display mt-10 text-xl">2. Cột trên Sheet</h2>
       <div className="mt-3 overflow-x-auto rounded-xl border border-border bg-card text-sm">
         <table className="w-full min-w-[28rem] text-left">
           <thead className="border-b border-border text-muted-foreground">
@@ -99,7 +117,7 @@ function AdminPage() {
           <tbody className="text-muted-foreground">
             <tr className="border-b border-border/60">
               <td className="px-3 py-2 font-mono text-foreground">id</td>
-              <td className="px-3 py-2">Mã duy nhất (vd. gc450, sau-rieng)</td>
+              <td className="px-3 py-2">Mã duy nhất (vd. gc450, gh900)</td>
             </tr>
             <tr className="border-b border-border/60">
               <td className="px-3 py-2 font-mono text-foreground">ten</td>
@@ -108,13 +126,14 @@ function AdminPage() {
             <tr className="border-b border-border/60">
               <td className="px-3 py-2 font-mono text-foreground">danh_muc</td>
               <td className="px-3 py-2">
-                trai-cay-vuon · trai-cay-nhap · <strong className="text-foreground">gio-trai-cay</strong> ·
-                hop-qua · lang-hoa · trap-cuoi
+                trai-cay-vuon · trai-cay-nhap ·{" "}
+                <strong className="text-foreground">gio-trai-cay</strong> · hop-qua · lang-hoa ·
+                trap-cuoi
               </td>
             </tr>
             <tr className="border-b border-border/60">
               <td className="px-3 py-2 font-mono text-foreground">gia</td>
-              <td className="px-3 py-2">Số (vd. 450000) — không cần dấu chấm/phẩy</td>
+              <td className="px-3 py-2">Số nguyên (vd. 450000)</td>
             </tr>
             <tr className="border-b border-border/60">
               <td className="px-3 py-2 font-mono text-foreground">don_vi</td>
@@ -122,60 +141,57 @@ function AdminPage() {
             </tr>
             <tr className="border-b border-border/60">
               <td className="px-3 py-2 font-mono text-foreground">mo_ta</td>
-              <td className="px-3 py-2">Mô tả ngắn (tránh câu generic placeholder)</td>
+              <td className="px-3 py-2">Mô tả ngắn</td>
             </tr>
             <tr className="border-b border-border/60">
               <td className="px-3 py-2 font-mono text-foreground">hinh</td>
-              <td className="px-3 py-2">Đường dẫn ảnh (vd. /products/gio-gc450.jpg)</td>
+              <td className="px-3 py-2">
+                Đường dẫn ảnh đúng chữ hoa/thường (vd. <code>/products/gio-GH900.jpg</code>)
+              </td>
             </tr>
             <tr className="border-b border-border/60">
               <td className="px-3 py-2 font-mono text-foreground">noi_bat</td>
-              <td className="px-3 py-2">1 = nổi bật (ưu tiên làm mẫu mức giá Giỏ quà)</td>
+              <td className="px-3 py-2">1 = nổi bật / ưu tiên mẫu Giỏ quà</td>
             </tr>
             <tr className="border-b border-border/60">
               <td className="px-3 py-2 font-mono text-foreground">con_hang</td>
-              <td className="px-3 py-2">1 = còn bán · 0 = ẩn / hết hàng</td>
+              <td className="px-3 py-2">
+                <strong className="text-foreground">1 = hiện trên web</strong> · 0 = ẩn
+              </td>
             </tr>
             <tr>
               <td className="px-3 py-2 font-mono text-foreground">giam_gia</td>
-              <td className="px-3 py-2">% giảm (0 nếu không giảm)</td>
+              <td className="px-3 py-2">% giảm (0 nếu không)</td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <h2 className="font-display mt-10 text-xl">3. Đồng bộ Giỏ trái cây → Giỏ quà</h2>
+      <h2 className="font-display mt-10 text-xl">3. Giỏ trái cây & Giỏ quà</h2>
       <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-muted-foreground">
         <li>
-          Mọi dòng <code className="text-foreground">danh_muc = gio-trai-cay</code>,{" "}
-          <code className="text-foreground">con_hang = 1</code> sẽ tạo <strong>một mức giá</strong> trên
-          trang Giỏ quà (và khối “Mẫu giỏ gói sẵn” trang chủ).
+          <code className="text-foreground">con_hang = 1</code> → hiện ở Cửa hàng + tạo mức trên Giỏ
+          quà.
         </li>
         <li>
-          Cùng một <code>gia</code> → chỉ giữ một mức; ưu tiên dòng có{" "}
-          <code className="text-foreground">noi_bat = 1</code> (ảnh + tên mẫu).
+          <code className="text-foreground">con_hang = 0</code> → ẩn hẳn (cách tắt món).
         </li>
         <li>
-          Thêm mức mới: thêm 1 dòng (vd. id <code>gc300</code>, giá <code>300000</code>, danh_muc{" "}
-          <code>gio-trai-cay</code>) → reload web, nút 300.000₫ xuất hiện.
+          Trùng giá → một mức trên Giỏ quà; ưu tiên dòng <code>noi_bat = 1</code>.
         </li>
         <li>
-          Ẩn mức: đặt <code>con_hang = 0</code> hoặc xóa dòng → mức biến mất khỏi Giỏ quà.
-        </li>
-        <li>
-          Dòng placeholder (mô tả “Trao vị ngọt, gửi yêu thương” hoặc mã GC/GH lẻ 10K)
-          bị bỏ qua, không hiện trên cửa hàng / Giỏ quà.
+          Thêm giỏ mới: thêm dòng → Lưu Sheet → bấm <strong>Lưu và đồng bộ</strong> (hoặc F5).
         </li>
       </ul>
 
       <h2 className="font-display mt-10 text-xl">4. Sau khi sửa Sheet</h2>
       <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
-        <li>Lưu Google Sheet (Ctrl/Cmd + S).</li>
+        <li>Lưu Google Sheet.</li>
+        <li>Vào trang này → <strong>Lưu và đồng bộ</strong>.</li>
+        <li>Xem số SP / số giỏ phía trên — phải tăng đúng.</li>
         <li>
-          Vào <code>/quan-ly</code> → bấm <strong>Lưu và đồng bộ</strong>, hoặc reload trang cửa hàng /
-          Giỏ quà.
+          Nếu vẫn cũ: xóa cache trình duyệt cho site (hoặc mở tab ẩn danh) rồi đồng bộ lại.
         </li>
-        <li>Kiểm tra dòng “Nguồn hiện tại: Google Sheet” (không còn cảnh báo).</li>
       </ol>
 
       <div className="mt-8 flex flex-col gap-4">
@@ -186,7 +202,7 @@ function AdminPage() {
             placeholder="1AbCDef..."
           />
         </Field>
-        <Field label="Hoặc URL CSV đã xuất bản">
+        <Field label="URL CSV xuất bản (để trống nếu dùng Sheet ID)">
           <Input
             value={csvUrl}
             onChange={(e) => setCsvUrl(e.target.value)}
@@ -197,7 +213,7 @@ function AdminPage() {
           <Field label="Tên tab sản phẩm">
             <Input value={sheetName} onChange={(e) => setSheetName(e.target.value)} />
           </Field>
-          <Field label="gid (nếu dùng export)">
+          <Field label="gid tab (tùy chọn)">
             <Input value={gid} onChange={(e) => setGid(e.target.value)} />
           </Field>
         </div>
@@ -209,7 +225,7 @@ function AdminPage() {
           />
         </Field>
         <div className="flex flex-col gap-2 sm:flex-row">
-          <Button size="lg" onClick={save} disabled={loading}>
+          <Button size="lg" onClick={() => void save()} disabled={loading}>
             {loading ? "Đang đọc bảng…" : "Lưu và đồng bộ"}
           </Button>
           <Button size="lg" variant="outline" onClick={downloadCsv}>
@@ -218,14 +234,11 @@ function AdminPage() {
         </div>
       </div>
 
-      <h2 className="font-display mt-12 text-xl">5. Nhận đơn vào Sheet (Apps Script)</h2>
+      <h2 className="font-display mt-12 text-xl">5. Nhận đơn vào Sheet</h2>
       <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
-        <li>Trong Google Sheet: Tiện ích → Apps Script.</li>
-        <li>Xóa code mặc định, dán đoạn bên dưới → Lưu.</li>
-        <li>
-          Triển khai → Ứng dụng web → Quyền truy cập: <strong>Bất kỳ ai</strong> → Sao chép URL.
-        </li>
-        <li>Dán URL vào ô Webhook bên trên → Lưu và đồng bộ.</li>
+        <li>Google Sheet → Tiện ích → Apps Script.</li>
+        <li>Dán mã bên dưới → Lưu.</li>
+        <li>Triển khai → Ứng dụng web → Bất kỳ ai → copy URL vào Webhook.</li>
       </ol>
       <pre className="mt-3 overflow-x-auto rounded-xl bg-foreground p-4 text-xs leading-relaxed text-background">
         {SCRIPT}
