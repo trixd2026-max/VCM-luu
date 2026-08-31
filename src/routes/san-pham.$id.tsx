@@ -7,6 +7,7 @@ import { ProductImage } from "@/components/product-image";
 import { QtyControl } from "@/components/qty-control";
 import { useCatalog, findProduct } from "@/lib/catalog-store";
 import { categoryLabel, salePrice } from "@/lib/catalog";
+import { isAvailable, maxOrderQty, stockLabel } from "@/lib/inventory";
 import { useCart } from "@/lib/cart";
 import { formatVnd } from "@/lib/format";
 import { SHOP } from "@/lib/shop";
@@ -35,8 +36,11 @@ function ProductPage() {
   }
 
   const price = salePrice(product);
+  const available = isAvailable(product);
+  const maxQty = maxOrderQty(product);
+  const label = stockLabel(product);
   const related = products
-    .filter((p) => p.category === product.category && p.id !== product.id)
+    .filter((p) => p.category === product.category && p.id !== product.id && isAvailable(p))
     .slice(0, 4);
   const askText = `Chị ơi, em hỏi ${product.name} (${formatVnd(price)}/${product.unit}) còn hàng không ạ?`;
 
@@ -62,14 +66,23 @@ function ProductPage() {
             {formatVnd(price)}
             <span className="text-base text-muted-foreground">/{product.unit}</span>
           </p>
+          {label ? (
+            <p className={`mt-2 text-sm ${available ? "text-muted-foreground" : "text-destructive"}`}>
+              {label}
+            </p>
+          ) : null}
           <p className="mt-4 max-w-prose text-muted-foreground">{product.description}</p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
-            <QtyControl value={qty} onChange={setQty} />
+            <QtyControl
+              value={Math.min(qty, maxQty)}
+              onChange={(v) => setQty(Math.min(Math.max(1, v), maxQty))}
+            />
             <Button
               size="lg"
-              disabled={!product.inStock}
+              disabled={!available}
               onClick={() => {
-                add(product, qty);
+                const q = Math.min(qty, maxQty);
+                add(product, q);
                 toast.success(`Đã thêm ${product.name}`);
               }}
             >
@@ -91,7 +104,7 @@ function ProductPage() {
               <a href={`tel:${SHOP.phone}`}>Gọi {SHOP.phoneDisplay}</a>
             </Button>
           </div>
-          {!product.inStock ? (
+          {!available ? (
             <p className="mt-4 text-sm text-destructive">Tạm hết — gọi để đặt trước.</p>
           ) : null}
         </div>

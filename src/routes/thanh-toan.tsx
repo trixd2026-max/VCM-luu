@@ -59,6 +59,38 @@ function CheckoutPage() {
     const items = lines
       .map((l) => `${l.qty} ${l.unit} ${l.name}${l.note ? ` (${l.note})` : ""}`)
       .join("; ");
+
+    // productId = phần trước "::" nếu có note gắn id
+    const itemsJson = JSON.stringify(
+      lines.map((l) => ({
+        productId: l.id.includes("::") ? l.id.split("::")[0] : l.id.replace(/^gio-/, "").replace(/-\d+$/, "") === l.id
+          ? l.id
+          : l.id.startsWith("gio-")
+            ? l.id.replace(/^gio-/, "").replace(/-\d{13}$/, "").replace(/-\d+$/, "") || l.id
+            : l.id,
+        name: l.name,
+        qty: l.qty,
+        unit: l.unit,
+        price: l.price,
+      })),
+    );
+
+    // Chuẩn hóa productId cho trừ tồn: id gốc sản phẩm catalog
+    const normalizedItems = lines.map((l) => {
+      let productId = l.id;
+      if (productId.includes("::")) productId = productId.split("::")[0];
+      // giỏ custom: gio-{productId}-{timestamp} hoặc gio-custom-{tier}-{ts}
+      const m = productId.match(/^gio-(.+?)-\d{10,}$/);
+      if (m && m[1] !== "custom") productId = m[1];
+      return {
+        productId,
+        name: l.name,
+        qty: l.qty,
+        unit: l.unit,
+        price: l.price,
+      };
+    });
+
     const payload = {
       orderId,
       name: name.trim() || "Khách",
@@ -67,6 +99,7 @@ function CheckoutPage() {
       note: note.trim(),
       total,
       items,
+      itemsJson: JSON.stringify(normalizedItems),
       type: "don-hang",
       createdAt: new Date().toISOString(),
     };
@@ -79,7 +112,7 @@ function CheckoutPage() {
       const result = await submitSheetOrder({
         data: { webhookUrl: webhookUrl.trim(), order: payload },
       });
-      if (result.saved) toast.success("Đã ghi đơn vào Google Sheet");
+      if (result.saved) toast.success("Đã ghi đơn & cập nhật tồn kho");
       else if (result.error) toast.message("Đơn vẫn gửi được qua điện thoại", { description: result.error });
     }
 

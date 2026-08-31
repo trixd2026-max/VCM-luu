@@ -3,6 +3,7 @@ import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import type { Product } from "@/lib/catalog";
 import { categoryLabel, salePrice } from "@/lib/catalog";
+import { isAvailable, maxOrderQty, stockLabel } from "@/lib/inventory";
 import { useCart } from "@/lib/cart";
 import { formatVnd } from "@/lib/format";
 import { ProductImage } from "./product-image";
@@ -10,6 +11,8 @@ import { ProductImage } from "./product-image";
 export function ProductCard({ product }: { product: Product }) {
   const add = useCart((s) => s.add);
   const price = salePrice(product);
+  const available = isAvailable(product);
+  const label = stockLabel(product);
 
   return (
     <article className="group flex flex-col">
@@ -25,9 +28,13 @@ export function ProductCard({ product }: { product: Product }) {
             className="transition-transform duration-500 ease-out group-hover:scale-[1.03]"
           />
         </div>
-        {!product.inStock ? (
+        {!available ? (
           <span className="absolute top-3 left-3 rounded-full bg-card/90 px-2.5 py-1 text-xs font-medium">
             Hết hàng
+          </span>
+        ) : label && label.startsWith("Sắp hết") ? (
+          <span className="absolute top-3 left-3 rounded-full bg-amber-600 px-2.5 py-1 text-xs font-medium text-white">
+            {label}
           </span>
         ) : product.featured ? (
           <span className="absolute top-3 left-3 rounded-full bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground">
@@ -46,6 +53,9 @@ export function ProductCard({ product }: { product: Product }) {
         >
           {product.name}
         </Link>
+        {label && available ? (
+          <p className="text-xs text-muted-foreground">{label}</p>
+        ) : null}
         <div className="mt-auto flex items-end justify-between gap-2 pt-2">
           <p className="text-sm tabular-nums">
             {formatVnd(price)}
@@ -53,7 +63,7 @@ export function ProductCard({ product }: { product: Product }) {
           </p>
           <button
             type="button"
-            disabled={!product.inStock}
+            disabled={!available}
             aria-label={`Thêm ${product.name}`}
             className="grid size-11 place-items-center rounded-full bg-primary text-primary-foreground transition-transform duration-150 enabled:active:scale-[0.96] disabled:opacity-40"
             onClick={() => {
