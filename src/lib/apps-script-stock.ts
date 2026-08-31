@@ -1,2 +1,2 @@
-// Apps Script: don + tru ton_kho + email canh bao
-export const APPS_SCRIPT_STOCK = "LOADING";
+// Script served at /apps-script.gs
+export const APPS_SCRIPT_STOCK = "" as const;

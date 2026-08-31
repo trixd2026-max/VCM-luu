@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useState, type ReactNode, useEffect } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -7,11 +7,10 @@ import { Label } from "@/components/ui/label";
 import { useSheetConfig } from "@/lib/sheet-config";
 import { useCatalog } from "@/lib/catalog-store";
 import { LOCAL_PRODUCTS, productsToCsv } from "@/lib/catalog";
-import { APPS_SCRIPT_STOCK } from "@/lib/apps-script-stock";
 
 export const Route = createFileRoute("/quan-ly")({ component: AdminPage });
 
-const SCRIPT = APPS_SCRIPT_STOCK;
+const SCRIPT_URL = "/apps-script.gs";
 
 function AdminPage() {
   const cfg = useSheetConfig();
@@ -25,6 +24,26 @@ function AdminPage() {
   const [sheetName, setSheetName] = useState(cfg.sheetName);
   const [gid, setGid] = useState(cfg.gid);
   const [webhookUrl, setWebhookUrl] = useState(cfg.webhookUrl);
+  const [script, setScript] = useState("");
+  const [scriptLoading, setScriptLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(SCRIPT_URL);
+        const text = await res.text();
+        if (!cancelled) setScript(text);
+      } catch {
+        if (!cancelled) setScript("// Khong tai duoc /apps-script.gs");
+      } finally {
+        if (!cancelled) setScriptLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   async function save() {
     cfg.setConfig({
@@ -92,13 +111,13 @@ function AdminPage() {
       <h2 className="font-display mt-10 text-xl">Cảnh báo email</h2>
       <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
         <li>
-          <code>ALERT_EMAIL</code> = <code>trixd2026@gmail.com</code> (đổi trong script nếu cần).
+          <code>ALERT_EMAIL</code> = <code>trixd2026@gmail.com</code>.
         </li>
         <li>
-          Trong Apps Script: chọn <code>testSendAlertEmail</code> → Run → Cho phép Gmail.
+          Apps Script: chọn <code>testSendAlertEmail</code> → Run → Cho phép Gmail.
         </li>
         <li>
-          Email tự gửi khi đơn làm tồn về 0 hoặc ≤ <code>LOW_STOCK_THRESHOLD</code> (mặc định 3).
+          Email tự gửi khi đơn làm tồn về 0 hoặc ≤ 3.
         </li>
         <li>
           Deploy → Manage deployments → Edit → Version: <strong>New</strong> → Deploy.
@@ -113,7 +132,7 @@ function AdminPage() {
           <Input
             value={csvUrl}
             onChange={(e) => setCsvUrl(e.target.value)}
-            placeholder="https://docs.google.com/spreadsheets/d/e/…/pub?output=csv"
+            placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?output=csv"
           />
         </Field>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -128,7 +147,7 @@ function AdminPage() {
           <Input
             value={webhookUrl}
             onChange={(e) => setWebhookUrl(e.target.value)}
-            placeholder="https://script.google.com/macros/s/…/exec"
+            placeholder="https://script.google.com/macros/s/.../exec"
           />
         </Field>
         <div className="flex flex-col gap-2 sm:flex-row">
@@ -146,13 +165,14 @@ function AdminPage() {
         Copy mã → dán vào Apps Script (xóa code cũ) → Lưu → Deploy lại webhook.
       </p>
       <pre className="mt-3 max-h-80 overflow-auto rounded-xl bg-foreground p-4 text-xs leading-relaxed text-background">
-        {SCRIPT}
+        {scriptLoading ? "Đang tải mã…" : script}
       </pre>
       <Button
         variant="ghost"
         className="mt-2"
+        disabled={!script || scriptLoading}
         onClick={async () => {
-          await navigator.clipboard.writeText(SCRIPT);
+          await navigator.clipboard.writeText(script);
           toast.success("Đã copy mã");
         }}
       >
