@@ -10,21 +10,97 @@ import { LOCAL_PRODUCTS, productsToCsv } from "@/lib/catalog";
 
 export const Route = createFileRoute("/quan-ly")({ component: AdminPage });
 
+/** Ghi đơn + trừ ton_kho + tắt con_hang khi hết */
 const SCRIPT = `function doPost(e) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = ss.getSheetByName("DonHang");
-  if (!sheet) {
-    sheet = ss.insertSheet("DonHang");
-    sheet.appendRow(["ThoiGian","MaDon","Ten","DienThoai","DiaChi","GhiChu","TongTien","ChiTiet","Loai"]);
-  }
   const data = JSON.parse(e.postData.contents);
-  sheet.appendRow([
+
+  // 1) Ghi đơn
+  let orders = ss.getSheetByName("DonHang");
+  if (!orders) {
+    orders = ss.insertSheet("DonHang");
+    orders.appendRow(["ThoiGian","MaDon","Ten","DienThoai","DiaChi","GhiChu","TongTien","ChiTiet","Loai"]);
+  }
+  orders.appendRow([
     new Date(), data.orderId, data.name, data.phone, data.address,
     data.note, data.total, data.items, data.type
   ]);
+
+  // 2) Trừ tồn kho (cột ton_kho trên tab sản phẩm)
+  try {
+    if (data.itemsJson) {
+      const lines = JSON.parse(data.itemsJson);
+      const productSheet = findProductSheet_(ss);
+      if (productSheet) decrementStock_(productSheet, lines);
+    }
+  } catch (err) {
+    // Không chặn ghi đơn nếu trừ tồn lỗi
+  }
+
   return ContentService
     .createTextOutput(JSON.stringify({ ok: true }))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+function findProductSheet_(ss) {
+  const names = ["san-pham-vuon-cua-mit", "SanPham", "Sản phẩm", "sanpham"];
+  for (var i = 0; i < names.length; i++) {
+    var sh = ss.getSheetByName(names[i]);
+    if (sh) return sh;
+  }
+  // Fallback: sheet đầu tiên có cột id + ton_kho
+  var sheets = ss.getSheets();
+  for (var j = 0; j < sheets.length; j++) {
+    var h = sheets[j].getRange(1, 1, 1, sheets[j].getLastColumn()).getValues()[0];
+    var lower = h.map(function(x) { return String(x).toLowerCase().trim(); });
+    if (lower.indexOf("id") >= 0 && (lower.indexOf("ton_kho") >= 0 || lower.indexOf("con_hang") >= 0)) {
+      return sheets[j];
+    }
+  }
+  return null;
+}
+
+function decrementStock_(sheet, lines) {
+  var lastCol = sheet.getLastColumn();
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return;
+  var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0].map(function(h) {
+    return String(h).toLowerCase().trim().replace(/\s+/g, "_");
+  });
+  var idCol = headers.indexOf("id");
+  if (idCol < 0) idCol = headers.indexOf("ma");
+  var stockCol = headers.indexOf("ton_kho");
+  if (stockCol < 0) stockCol = headers.indexOf("tonkho");
+  var inStockCol = headers.indexOf("con_hang");
+  if (idCol < 0) return;
+
+  var data = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
+  var idToRow = {};
+  for (var r = 0; r < data.length; r++) {
+    idToRow[String(data[r][idCol]).trim()] = r;
+  }
+
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i];
+    var pid = String(line.productId || "").trim();
+    var qty = Number(line.qty) || 0;
+    if (!pid || qty <= 0) continue;
+    var idx = idToRow[pid];
+    if (idx === undefined) continue;
+
+    if (stockCol >= 0) {
+      var cell = data[idx][stockCol];
+      if (cell === "" || cell === null) continue; // không theo dõi số
+      var cur = Number(cell);
+      if (!isFinite(cur)) continue;
+      var next = Math.max(0, cur - qty);
+      data[idx][stockCol] = next;
+      sheet.getRange(idx + 2, stockCol + 1).setValue(next);
+      if (next <= 0 && inStockCol >= 0) {
+        sheet.getRange(idx + 2, inStockCol + 1).setValue(0);
+      }
+    }
+  }
 }`;
 
 function AdminPage() {
@@ -43,7 +119,6 @@ function AdminPage() {
   async function save() {
     cfg.setConfig({
       sheetId: sheetId.trim(),
-      // Bỏ URL /edit — chỉ nhận CSV export thật
       csvUrl: csvUrl.includes("/edit") ? "" : csvUrl.trim(),
       sheetName: sheetName.trim(),
       gid: gid.trim(),
@@ -68,139 +143,51 @@ function AdminPage() {
     URL.revokeObjectURL(url);
   }
 
-  const basketCount = products.filter((p) => p.category === "gio-trai-cay" && p.inStock).length;
+  const tracked = products.filter((p) => typeof p.stock === "number").length;
+  const low = products.filter((p) => typeof p.stock === "number" && p.stock > 0 && p.stock <= 3).length;
+  const out = products.filter((p) => !p.inStock || (typeof p.stock === "number" && p.stock <= 0)).length;
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-10">
       <p className="text-xs tracking-wide text-muted-foreground uppercase">Chủ cửa hàng</p>
-      <h1 className="font-display mt-1 text-4xl">Google Sheet</h1>
+      <h1 className="font-display mt-1 text-4xl">Google Sheet & tồn kho</h1>
       <p className="mt-3 text-sm text-muted-foreground">
-        Kết nối Google Sheet để sửa giá, thêm sản phẩm, ẩn hết hàng — web tự cập nhật.
-        Mức giá trang <strong>Giỏ quà</strong> lấy từ các dòng <code>gio-trai-cay</code> còn hàng.
+        Sửa giá / tồn trên Sheet → web cập nhật. Khi khách đặt hàng, Apps Script tự trừ{" "}
+        <code>ton_kho</code> và tắt <code>con_hang</code> nếu hết.
       </p>
       <p className="mt-2 text-xs text-muted-foreground">
-        Nguồn hiện tại:{" "}
+        Nguồn:{" "}
         {source === "sheet"
-          ? `Google Sheet · ${products.length} SP · ${basketCount} giỏ trái cây`
+          ? `Google Sheet · ${products.length} SP · theo dõi tồn: ${tracked} · sắp hết: ${low} · hết: ${out}`
           : "bảng mẫu"}
         {warning ? ` · ${warning}` : ""}
       </p>
 
-      <h2 className="font-display mt-10 text-xl">1. Kết nối bảng lần đầu</h2>
+      <h2 className="font-display mt-10 text-xl">Tồn kho tự động</h2>
       <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
-        <li>Bấm <strong>Tải CSV mẫu</strong> bên dưới (hoặc dùng bảng đang có).</li>
-        <li>Mở Google Trang tính → Tệp → Nhập → tải file CSV lên (nếu tạo mới).</li>
         <li>
-          Chia sẻ bảng: <strong>Bất kỳ ai có liên kết</strong> → quyền <strong>Người xem</strong>
-          (bắt buộc).
+          Thêm cột <code className="text-foreground">ton_kho</code> trên tab sản phẩm (sát cột{" "}
+          <code>con_hang</code>).
         </li>
         <li>
-          Copy <strong>Sheet ID</strong> trên thanh địa chỉ — đoạn giữa <code>/d/</code> và{" "}
-          <code>/edit</code>.
+          Điền số (vd. <code>10</code>). <strong>Để trống</strong> = không giới hạn số lượng (chỉ dùng{" "}
+          <code>con_hang</code>).
         </li>
         <li>
-          Điền <strong>Tên tab</strong> đúng với tab sản phẩm (vd.{" "}
-          <code>san-pham-vuon-cua-mit</code>).
-        </li>
-        <li>Bấm <strong>Lưu và đồng bộ</strong> — phải hiện “Google Sheet · … SP”.</li>
-      </ol>
-
-      <h2 className="font-display mt-10 text-xl">2. Cột trên Sheet</h2>
-      <div className="mt-3 overflow-x-auto rounded-xl border border-border bg-card text-sm">
-        <table className="w-full min-w-[28rem] text-left">
-          <thead className="border-b border-border text-muted-foreground">
-            <tr>
-              <th className="px-3 py-2 font-medium">Cột</th>
-              <th className="px-3 py-2 font-medium">Ý nghĩa</th>
-            </tr>
-          </thead>
-          <tbody className="text-muted-foreground">
-            <tr className="border-b border-border/60">
-              <td className="px-3 py-2 font-mono text-foreground">id</td>
-              <td className="px-3 py-2">Mã duy nhất (vd. gc450, gh900)</td>
-            </tr>
-            <tr className="border-b border-border/60">
-              <td className="px-3 py-2 font-mono text-foreground">ten</td>
-              <td className="px-3 py-2">Tên hiển thị</td>
-            </tr>
-            <tr className="border-b border-border/60">
-              <td className="px-3 py-2 font-mono text-foreground">danh_muc</td>
-              <td className="px-3 py-2">
-                trai-cay-vuon · trai-cay-nhap ·{" "}
-                <strong className="text-foreground">gio-trai-cay</strong> · hop-qua · lang-hoa ·
-                trap-cuoi
-              </td>
-            </tr>
-            <tr className="border-b border-border/60">
-              <td className="px-3 py-2 font-mono text-foreground">gia</td>
-              <td className="px-3 py-2">Số nguyên (vd. 450000)</td>
-            </tr>
-            <tr className="border-b border-border/60">
-              <td className="px-3 py-2 font-mono text-foreground">don_vi</td>
-              <td className="px-3 py-2">kg · quả · giỏ · hộp · lẵng · set</td>
-            </tr>
-            <tr className="border-b border-border/60">
-              <td className="px-3 py-2 font-mono text-foreground">mo_ta</td>
-              <td className="px-3 py-2">Mô tả ngắn</td>
-            </tr>
-            <tr className="border-b border-border/60">
-              <td className="px-3 py-2 font-mono text-foreground">hinh</td>
-              <td className="px-3 py-2">
-                Đường dẫn ảnh đúng chữ hoa/thường (vd. <code>/products/gio-GH900.jpg</code>)
-              </td>
-            </tr>
-            <tr className="border-b border-border/60">
-              <td className="px-3 py-2 font-mono text-foreground">noi_bat</td>
-              <td className="px-3 py-2">1 = nổi bật / ưu tiên mẫu Giỏ quà</td>
-            </tr>
-            <tr className="border-b border-border/60">
-              <td className="px-3 py-2 font-mono text-foreground">con_hang</td>
-              <td className="px-3 py-2">
-                <strong className="text-foreground">1 = hiện trên web</strong> · 0 = ẩn
-              </td>
-            </tr>
-            <tr>
-              <td className="px-3 py-2 font-mono text-foreground">giam_gia</td>
-              <td className="px-3 py-2">% giảm (0 nếu không)</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <h2 className="font-display mt-10 text-xl">3. Giỏ trái cây & Giỏ quà</h2>
-      <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-muted-foreground">
-        <li>
-          <code className="text-foreground">con_hang = 1</code> → hiện ở Cửa hàng + tạo mức trên Giỏ
-          quà.
+          Khi <code>ton_kho = 0</code> → web hiện <strong>Hết hàng</strong> (và tự set{" "}
+          <code>con_hang = 0</code> sau đơn).
         </li>
         <li>
-          <code className="text-foreground">con_hang = 0</code> → ẩn hẳn (cách tắt món).
+          Cập nhật mã Apps Script bên dưới (Triển khai lại webhook) để trừ tồn khi có đơn.
         </li>
         <li>
-          Trùng giá → một mức trên Giỏ quà; ưu tiên dòng <code>noi_bat = 1</code>.
-        </li>
-        <li>
-          Thêm giỏ mới: thêm dòng → Lưu Sheet → bấm <strong>Lưu và đồng bộ</strong> (hoặc F5).
-        </li>
-      </ul>
-
-      <h2 className="font-display mt-10 text-xl">4. Sau khi sửa Sheet</h2>
-      <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
-        <li>Lưu Google Sheet.</li>
-        <li>Vào trang này → <strong>Lưu và đồng bộ</strong>.</li>
-        <li>Xem số SP / số giỏ phía trên — phải tăng đúng.</li>
-        <li>
-          Nếu vẫn cũ: xóa cache trình duyệt cho site (hoặc mở tab ẩn danh) rồi đồng bộ lại.
+          Sau mỗi đơn: mở Sheet kiểm tra <code>ton_kho</code> đã giảm → F5 / Lưu và đồng bộ trên web.
         </li>
       </ol>
 
       <div className="mt-8 flex flex-col gap-4">
         <Field label="Mã bảng (Sheet ID)">
-          <Input
-            value={sheetId}
-            onChange={(e) => setSheetId(e.target.value)}
-            placeholder="1AbCDef..."
-          />
+          <Input value={sheetId} onChange={(e) => setSheetId(e.target.value)} placeholder="1AbCDef..." />
         </Field>
         <Field label="URL CSV xuất bản (để trống nếu dùng Sheet ID)">
           <Input
@@ -213,7 +200,7 @@ function AdminPage() {
           <Field label="Tên tab sản phẩm">
             <Input value={sheetName} onChange={(e) => setSheetName(e.target.value)} />
           </Field>
-          <Field label="gid tab (tùy chọn)">
+          <Field label="gid tab">
             <Input value={gid} onChange={(e) => setGid(e.target.value)} />
           </Field>
         </div>
@@ -234,13 +221,12 @@ function AdminPage() {
         </div>
       </div>
 
-      <h2 className="font-display mt-12 text-xl">5. Nhận đơn vào Sheet</h2>
-      <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
-        <li>Google Sheet → Tiện ích → Apps Script.</li>
-        <li>Dán mã bên dưới → Lưu.</li>
-        <li>Triển khai → Ứng dụng web → Bất kỳ ai → copy URL vào Webhook.</li>
-      </ol>
-      <pre className="mt-3 overflow-x-auto rounded-xl bg-foreground p-4 text-xs leading-relaxed text-background">
+      <h2 className="font-display mt-12 text-xl">Apps Script (đơn + trừ tồn)</h2>
+      <p className="mt-2 text-sm text-muted-foreground">
+        Tiện ích → Apps Script → dán toàn bộ → Lưu → Triển khai → Ứng dụng web → Bất kỳ ai → copy URL
+        vào Webhook.
+      </p>
+      <pre className="mt-3 max-h-80 overflow-auto rounded-xl bg-foreground p-4 text-xs leading-relaxed text-background">
         {SCRIPT}
       </pre>
       <Button
