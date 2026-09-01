@@ -1,11 +1,12 @@
 /*****************************************************************
- * Vuon Cua Mit - Webhook: don + tru ton + email + Telegram
+ * Vuon Cua Mit - Webhook: don hang + tru ton + email
  *
- * Script properties (tuy chon):
- *   ALERT_EMAIL
- *   TELEGRAM_BOT_TOKEN
- *   TELEGRAM_CHAT_ID
- *   NOTIFY_WEBHOOK_URL  (Make.com / n8n / SMS gateway)
+ * - Ghi don vao tab DonHang
+ * - Tru ton_kho, cap nhat con_hang
+ * - Gui email don moi + canh bao ton kho
+ *
+ * Script properties (tuy chon): ALERT_EMAIL
+ * Bien ALERT_EMAIL ben duoi dung neu khong set property
  *****************************************************************/
 var ALERT_EMAIL = "trixd2026@gmail.com";
 var LOW_STOCK_THRESHOLD = 3;
@@ -44,26 +45,34 @@ function doPost(e) {
         alerts = decrementStock_(productSheet, lines) || [];
       }
     }
-  } catch (err) {}
+  } catch (err) {
+    Logger.log("stock error: " + err);
+  }
 
   try {
-    sendOrderNotify_(data);
+    sendOrderEmail_(data);
   } catch (errN) {
-    Logger.log("notify error: " + errN);
+    Logger.log("order email error: " + errN);
   }
 
   try {
     if (alerts.length > 0) {
       sendStockAlertEmail_(alerts, data.orderId || "");
     }
-  } catch (err2) {}
+  } catch (err2) {
+    Logger.log("stock email error: " + err2);
+  }
 
   return ContentService
     .createTextOutput(JSON.stringify({ ok: true, alerts: alerts.length }))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-function sendOrderNotify_(data) {
+/** Email don moi cho chu shop */
+function sendOrderEmail_(data) {
+  var to = getAlertEmail_();
+  if (!to) return;
+
   var orderId = data.orderId || "";
   var name = data.name || "";
   var phone = data.phone || "";
@@ -73,7 +82,7 @@ function sendOrderNotify_(data) {
   var items = data.items || "";
   var when = new Date().toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
 
-  var text =
+  var body =
     "[" + SHOP_NAME + "] DON MOI " + orderId + "\n" +
     "Luc: " + when + "\n" +
     "Ten: " + name + "\n" +
@@ -82,59 +91,12 @@ function sendOrderNotify_(data) {
     (note ? "Ghi chu: " + note + "\n" : "") +
     "Mon: " + items + "\n" +
     "Tong: " + total + "\n" +
-    "-> Lien he khach / mo Sheet DonHang";
+    "-> Lien he khach / mo Sheet tab DonHang";
 
-  var to = getAlertEmail_();
-  if (to) {
-    MailApp.sendEmail({
-      to: to,
-      subject: "[" + SHOP_NAME + "] Don moi " + orderId + " — " + phone,
-      body: text
-    });
-  }
-
-  sendTelegram_(text);
-  sendNotifyWebhook_(data, text);
-}
-
-function prop_(key) {
-  try {
-    return PropertiesService.getScriptProperties().getProperty(key) || "";
-  } catch (e) {
-    return "";
-  }
-}
-
-function sendTelegram_(text) {
-  var token = prop_("TELEGRAM_BOT_TOKEN");
-  var chatId = prop_("TELEGRAM_CHAT_ID");
-  if (!token || !chatId) return;
-  var url = "https://api.telegram.org/bot" + token + "/sendMessage";
-  UrlFetchApp.fetch(url, {
-    method: "post",
-    contentType: "application/json",
-    payload: JSON.stringify({
-      chat_id: chatId,
-      text: text,
-      disable_web_page_preview: true
-    }),
-    muteHttpExceptions: true
-  });
-}
-
-function sendNotifyWebhook_(data, text) {
-  var hook = prop_("NOTIFY_WEBHOOK_URL");
-  if (!hook) return;
-  UrlFetchApp.fetch(hook, {
-    method: "post",
-    contentType: "application/json",
-    payload: JSON.stringify({
-      type: "new_order",
-      shop: SHOP_NAME,
-      text: text,
-      order: data
-    }),
-    muteHttpExceptions: true
+  MailApp.sendEmail({
+    to: to,
+    subject: "[" + SHOP_NAME + "] Don moi " + orderId + " — " + phone,
+    body: body
   });
 }
 
@@ -154,23 +116,24 @@ function testSendAlertEmail() {
   if (!to) throw new Error("Chua cau hinh ALERT_EMAIL");
   MailApp.sendEmail({
     to: to,
-    subject: "[" + SHOP_NAME + "] Test canh bao — OK",
-    body: "Test email OK.\nEmail: " + to + "\nQuota: " + MailApp.getRemainingDailyQuota()
+    subject: "[" + SHOP_NAME + "] Test email — OK",
+    body:
+      "Day la email thu tu Apps Script.\n" +
+      "Neu nhan duoc -> cau hinh dung.\n" +
+      "Email dich: " + to + "\n" +
+      "Quota con: " + MailApp.getRemainingDailyQuota()
   });
   Logger.log("Da gui test toi " + to);
 }
 
-function testTelegram() {
-  sendTelegram_("[" + SHOP_NAME + "] Test Telegram — OK luc " + new Date().toLocaleString("vi-VN"));
-  Logger.log("Da gui test Telegram");
-}
-
 function getAlertEmail_() {
-  var prop = prop_("ALERT_EMAIL");
-  if (prop && prop.indexOf("@") > 0) return prop.trim();
+  try {
+    var prop = PropertiesService.getScriptProperties().getProperty("ALERT_EMAIL");
+    if (prop && String(prop).indexOf("@") > 0) return String(prop).trim();
+  } catch (e) {}
   if (ALERT_EMAIL && ALERT_EMAIL.indexOf("@") > 0) return ALERT_EMAIL.trim();
   try {
-    return Session.getActiveUser().getEmail() || Session.getEffectiveUser().getEmail();
+    return Session.getActiveUser().getEmail() || Session.getEffectiveUser().getEmail() || "";
   } catch (e2) {
     return "";
   }
@@ -184,7 +147,9 @@ function findProductSheet_(ss) {
   }
   var sheets = ss.getSheets();
   for (var j = 0; j < sheets.length; j++) {
-    var h = sheets[j].getRange(1, 1, 1, sheets[j].getLastColumn()).getValues()[0];
+    var lastCol = sheets[j].getLastColumn();
+    if (lastCol < 1) continue;
+    var h = sheets[j].getRange(1, 1, 1, lastCol).getValues()[0];
     var lower = h.map(function (x) {
       return String(x).toLowerCase().trim();
     });
@@ -321,14 +286,15 @@ function sendStockAlertEmail_(alerts, context) {
     bodyLines.push("=== SAP HET (<= " + LOW_STOCK_THRESHOLD + ") ===");
     for (var s = 0; s < sap.length; s++) {
       bodyLines.push(
-        "- [" + sap[s].id + "] " + sap[s].name + " -> " + sap[s].stock + " (truoc: " + sap[s].before + ")"
+        "- [" + sap[s].id + "] " + sap[s].name + " -> " + sap[s].stock +
+          " (truoc: " + sap[s].before + ")"
       );
     }
   }
 
-  var body = bodyLines.join("\n");
-  MailApp.sendEmail({ to: to, subject: subject, body: body });
-  try {
-    sendTelegram_(subject + "\n\n" + body);
-  } catch (e) {}
+  MailApp.sendEmail({
+    to: to,
+    subject: subject,
+    body: bodyLines.join("\n")
+  });
 }
