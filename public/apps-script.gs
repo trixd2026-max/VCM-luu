@@ -1,22 +1,40 @@
 /*****************************************************************
- * Vuon Cua Mit - Webhook + tru ton + email
- * ALERT_EMAIL, testSendAlertEmail(), Deploy Version New
+ * Vuon Cua Mit - Webhook: don + tru ton + email + Telegram
+ *
+ * Script properties (tuy chon):
+ *   ALERT_EMAIL
+ *   TELEGRAM_BOT_TOKEN
+ *   TELEGRAM_CHAT_ID
+ *   NOTIFY_WEBHOOK_URL  (Make.com / n8n / SMS gateway)
  *****************************************************************/
 var ALERT_EMAIL = "trixd2026@gmail.com";
 var LOW_STOCK_THRESHOLD = 3;
 var SHOP_NAME = "Vuon Cua Mit";
+
 function doPost(e) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var data = JSON.parse(e.postData.contents);
+
   var orders = ss.getSheetByName("DonHang");
   if (!orders) {
     orders = ss.insertSheet("DonHang");
-    orders.appendRow(["ThoiGian", "MaDon", "Ten", "DienThoai", "DiaChi", "GhiChu", "TongTien", "ChiTiet", "Loai"]);
+    orders.appendRow([
+      "ThoiGian", "MaDon", "Ten", "DienThoai", "DiaChi",
+      "GhiChu", "TongTien", "ChiTiet", "Loai"
+    ]);
   }
   orders.appendRow([
-    new Date(), data.orderId, data.name, data.phone, data.address,
-    data.note, data.total, data.items, data.type
+    new Date(),
+    data.orderId,
+    data.name,
+    data.phone,
+    data.address,
+    data.note,
+    data.total,
+    data.items,
+    data.type
   ]);
+
   var alerts = [];
   try {
     if (data.itemsJson) {
@@ -27,15 +45,99 @@ function doPost(e) {
       }
     }
   } catch (err) {}
+
+  try {
+    sendOrderNotify_(data);
+  } catch (errN) {
+    Logger.log("notify error: " + errN);
+  }
+
   try {
     if (alerts.length > 0) {
       sendStockAlertEmail_(alerts, data.orderId || "");
     }
   } catch (err2) {}
+
   return ContentService
     .createTextOutput(JSON.stringify({ ok: true, alerts: alerts.length }))
     .setMimeType(ContentService.MimeType.JSON);
 }
+
+function sendOrderNotify_(data) {
+  var orderId = data.orderId || "";
+  var name = data.name || "";
+  var phone = data.phone || "";
+  var address = data.address || "";
+  var note = data.note || "";
+  var total = data.total || "";
+  var items = data.items || "";
+  var when = new Date().toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
+
+  var text =
+    "[" + SHOP_NAME + "] DON MOI " + orderId + "\n" +
+    "Luc: " + when + "\n" +
+    "Ten: " + name + "\n" +
+    "SDT: " + phone + "\n" +
+    (address ? "Dia chi: " + address + "\n" : "") +
+    (note ? "Ghi chu: " + note + "\n" : "") +
+    "Mon: " + items + "\n" +
+    "Tong: " + total + "\n" +
+    "-> Lien he khach / mo Sheet DonHang";
+
+  var to = getAlertEmail_();
+  if (to) {
+    MailApp.sendEmail({
+      to: to,
+      subject: "[" + SHOP_NAME + "] Don moi " + orderId + " — " + phone,
+      body: text
+    });
+  }
+
+  sendTelegram_(text);
+  sendNotifyWebhook_(data, text);
+}
+
+function prop_(key) {
+  try {
+    return PropertiesService.getScriptProperties().getProperty(key) || "";
+  } catch (e) {
+    return "";
+  }
+}
+
+function sendTelegram_(text) {
+  var token = prop_("TELEGRAM_BOT_TOKEN");
+  var chatId = prop_("TELEGRAM_CHAT_ID");
+  if (!token || !chatId) return;
+  var url = "https://api.telegram.org/bot" + token + "/sendMessage";
+  UrlFetchApp.fetch(url, {
+    method: "post",
+    contentType: "application/json",
+    payload: JSON.stringify({
+      chat_id: chatId,
+      text: text,
+      disable_web_page_preview: true
+    }),
+    muteHttpExceptions: true
+  });
+}
+
+function sendNotifyWebhook_(data, text) {
+  var hook = prop_("NOTIFY_WEBHOOK_URL");
+  if (!hook) return;
+  UrlFetchApp.fetch(hook, {
+    method: "post",
+    contentType: "application/json",
+    payload: JSON.stringify({
+      type: "new_order",
+      shop: SHOP_NAME,
+      text: text,
+      order: data
+    }),
+    muteHttpExceptions: true
+  });
+}
+
 function checkLowStockDaily() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = findProductSheet_(ss);
@@ -45,37 +147,35 @@ function checkLowStockDaily() {
     sendStockAlertEmail_(alerts, "kiem tra dinh ky");
   }
 }
+
 function testSendAlertEmail() {
   var to = getAlertEmail_();
   Logger.log("ALERT_EMAIL = " + to);
-  if (!to) {
-    throw new Error("Chua cau hinh ALERT_EMAIL");
-  }
+  if (!to) throw new Error("Chua cau hinh ALERT_EMAIL");
   MailApp.sendEmail({
     to: to,
-    subject: "[Vuon Cua Mit] Test canh bao ton kho — OK",
-    body:
-      "Day la email thu tu Apps Script.\n" +
-      "Neu nhan duoc -> cau hinh dung.\n" +
-      "Email dich: " + to + "\n" +
-      "Quota con: " + MailApp.getRemainingDailyQuota()
+    subject: "[" + SHOP_NAME + "] Test canh bao — OK",
+    body: "Test email OK.\nEmail: " + to + "\nQuota: " + MailApp.getRemainingDailyQuota()
   });
   Logger.log("Da gui test toi " + to);
 }
+
+function testTelegram() {
+  sendTelegram_("[" + SHOP_NAME + "] Test Telegram — OK luc " + new Date().toLocaleString("vi-VN"));
+  Logger.log("Da gui test Telegram");
+}
+
 function getAlertEmail_() {
-  try {
-    var prop = PropertiesService.getScriptProperties().getProperty("ALERT_EMAIL");
-    if (prop && String(prop).indexOf("@") > 0) return String(prop).trim();
-  } catch (e) {}
-  if (ALERT_EMAIL && ALERT_EMAIL.indexOf("@") > 0) {
-    return ALERT_EMAIL.trim();
-  }
+  var prop = prop_("ALERT_EMAIL");
+  if (prop && prop.indexOf("@") > 0) return prop.trim();
+  if (ALERT_EMAIL && ALERT_EMAIL.indexOf("@") > 0) return ALERT_EMAIL.trim();
   try {
     return Session.getActiveUser().getEmail() || Session.getEffectiveUser().getEmail();
   } catch (e2) {
     return "";
   }
 }
+
 function findProductSheet_(ss) {
   var names = ["san-pham-vuon-cua-mit", "SanPham", "San pham", "sanpham"];
   for (var i = 0; i < names.length; i++) {
@@ -94,9 +194,11 @@ function findProductSheet_(ss) {
   }
   return null;
 }
+
 function normalizeHeader_(h) {
   return String(h).toLowerCase().trim().replace(/\s+/g, "_");
 }
+
 function decrementStock_(sheet, lines) {
   var lastCol = sheet.getLastColumn();
   var lastRow = sheet.getLastRow();
@@ -110,13 +212,16 @@ function decrementStock_(sheet, lines) {
   if (stockCol < 0) stockCol = headers.indexOf("tonkho");
   var inStockCol = headers.indexOf("con_hang");
   if (idCol < 0 || stockCol < 0) return [];
+
   var data = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
   var idToRow = {};
   for (var r = 0; r < data.length; r++) {
     idToRow[String(data[r][idCol]).trim()] = r;
   }
+
   var alerts = [];
   var threshold = LOW_STOCK_THRESHOLD;
+
   for (var i = 0; i < lines.length; i++) {
     var line = lines[i];
     var pid = String(line.productId || "").trim();
@@ -124,6 +229,7 @@ function decrementStock_(sheet, lines) {
     if (!pid || qty <= 0) continue;
     var idx = idToRow[pid];
     if (idx === undefined) continue;
+
     var cell = data[idx][stockCol];
     if (cell === "" || cell === null) continue;
     var cur = Number(cell);
@@ -134,6 +240,7 @@ function decrementStock_(sheet, lines) {
     if (next <= 0 && inStockCol >= 0) {
       sheet.getRange(idx + 2, inStockCol + 1).setValue(0);
     }
+
     var pname = nameCol >= 0 ? String(data[idx][nameCol] || pid) : pid;
     if (next <= 0 && cur > 0) {
       alerts.push({ id: pid, name: pname, stock: 0, kind: "het", before: cur });
@@ -145,6 +252,7 @@ function decrementStock_(sheet, lines) {
   }
   return alerts;
 }
+
 function scanLowStock_(sheet) {
   var lastCol = sheet.getLastColumn();
   var lastRow = sheet.getLastRow();
@@ -157,6 +265,7 @@ function scanLowStock_(sheet) {
   var stockCol = headers.indexOf("ton_kho");
   if (stockCol < 0) stockCol = headers.indexOf("tonkho");
   if (idCol < 0 || stockCol < 0) return [];
+
   var data = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
   var alerts = [];
   var threshold = LOW_STOCK_THRESHOLD;
@@ -175,22 +284,24 @@ function scanLowStock_(sheet) {
   }
   return alerts;
 }
+
 function sendStockAlertEmail_(alerts, context) {
   var to = getAlertEmail_();
   if (!to) return;
+
   var het = [];
   var sap = [];
   for (var i = 0; i < alerts.length; i++) {
     if (alerts[i].kind === "het") het.push(alerts[i]);
     else sap.push(alerts[i]);
   }
+
   var subjectParts = [];
   if (het.length) subjectParts.push(het.length + " het hang");
   if (sap.length) subjectParts.push(sap.length + " sap het");
   var subject = "[" + SHOP_NAME + "] Canh bao ton kho: " + subjectParts.join(", ");
+
   var bodyLines = [];
-  bodyLines.push("Xin chao,");
-  bodyLines.push("");
   bodyLines.push("Canh bao ton kho tu " + SHOP_NAME + ".");
   if (context) bodyLines.push("Ngu canh: " + context);
   bodyLines.push(
@@ -201,7 +312,7 @@ function sendStockAlertEmail_(alerts, context) {
     bodyLines.push("=== HET HANG ===");
     for (var h = 0; h < het.length; h++) {
       bodyLines.push(
-        "- [" + het[h].id + "] " + het[h].name + " -> con 0 (truoc: " + het[h].before + ")"
+        "- [" + het[h].id + "] " + het[h].name + " -> 0 (truoc: " + het[h].before + ")"
       );
     }
     bodyLines.push("");
@@ -210,17 +321,14 @@ function sendStockAlertEmail_(alerts, context) {
     bodyLines.push("=== SAP HET (<= " + LOW_STOCK_THRESHOLD + ") ===");
     for (var s = 0; s < sap.length; s++) {
       bodyLines.push(
-        "- [" + sap[s].id + "] " + sap[s].name + " -> con " + sap[s].stock + " (truoc: " + sap[s].before + ")"
+        "- [" + sap[s].id + "] " + sap[s].name + " -> " + sap[s].stock + " (truoc: " + sap[s].before + ")"
       );
     }
-    bodyLines.push("");
   }
-  bodyLines.push("Vao Google Sheet cap nhat ton_kho / nhap hang, roi F5 trang web.");
-  bodyLines.push("");
-  bodyLines.push("(Email tu dong tu Apps Script)");
-  MailApp.sendEmail({
-    to: to,
-    subject: subject,
-    body: bodyLines.join("\n")
-  });
+
+  var body = bodyLines.join("\n");
+  MailApp.sendEmail({ to: to, subject: subject, body: body });
+  try {
+    sendTelegram_(subject + "\n\n" + body);
+  } catch (e) {}
 }
