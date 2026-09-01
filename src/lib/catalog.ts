@@ -1,4 +1,5 @@
 import { parseCsv, toCsv } from "./csv";
+import { normalizeProductImageUrl } from "./product-image-url";
 
 export const CATEGORIES = [
   { id: "trai-cay-vuon", label: "Trái cây vườn", blurb: "Hái trong ngày từ vườn nhà" },
@@ -122,7 +123,7 @@ export function productsFromCsv(text: string): Product[] {
       price: num(raw.price ?? "0"),
       unit: (raw.unit ?? "kg").trim() || "kg",
       description: (raw.description ?? "").trim(),
-      image: (raw.image ?? "").trim() || "/products/hero.jpg",
+      image: normalizeProductImageUrl((raw.image ?? "").trim()),
       featured: yes(raw.featured ?? ""),
       inStock,
       discount: num(raw.discount ?? "0"),
