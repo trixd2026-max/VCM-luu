@@ -5,9 +5,13 @@ import { CATEGORIES, type CategoryId } from "@/lib/catalog";
 import { useCatalog } from "@/lib/catalog-store";
 import { ProductCard } from "@/components/product-card";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type ShopSearch = { nhom?: string; q?: string };
+
+/** Số SP mỗi lần “Xem thêm” */
+const PAGE_SIZE = 24;
 
 export const Route = createFileRoute("/cua-hang")({
   validateSearch: (s: Record<string, unknown>): ShopSearch => ({
@@ -27,14 +31,19 @@ function ShopPage() {
   const loaded = useCatalog((s) => s.loaded);
   const [query, setQuery] = useState(search.q ?? "");
   const nhom = (search.nhom as CategoryId | undefined) ?? undefined;
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   useEffect(() => {
     if (!loaded) void load();
   }, [loaded, load]);
 
+  // Đổi nhóm / từ khóa → về trang đầu
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [nhom, query]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    // Giữ đúng thứ tự Sheet — chỉ ẩn khi con_hang = 0 (inStock=false)
     return products.filter((p) => {
       if (!p.inStock) return false;
       if (nhom && p.category !== nhom) return false;
@@ -47,6 +56,10 @@ function ShopPage() {
     });
   }, [products, nhom, query]);
 
+  const visible = filtered.slice(0, visibleCount);
+  const hasMore = visibleCount < filtered.length;
+  const remaining = Math.max(0, filtered.length - visibleCount);
+
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
       <p className="text-xs tracking-wide text-muted-foreground uppercase">Cửa hàng</p>
@@ -57,6 +70,7 @@ function ShopPage() {
       {source === "sheet" ? (
         <p className="mt-3 text-xs text-primary">
           Đã đồng bộ từ Google Sheet · {filtered.length} sản phẩm đang hiện
+          {hasMore ? ` · đang xem ${visible.length}` : ""}
         </p>
       ) : warning ? (
         <p className="mt-3 text-xs text-muted-foreground">{warning}</p>
@@ -66,32 +80,35 @@ function ShopPage() {
         </p>
       )}
 
-      <div className="relative mt-8 max-w-md">
-        <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Tìm cam, giỏ 500K, tráp…"
-          className="pl-10"
-        />
-      </div>
+      {/* Sticky: tìm kiếm + lọc danh mục */}
+      <div className="sticky top-16 z-30 -mx-4 mt-8 border-b border-border/60 bg-background/95 px-4 py-3 backdrop-blur-md supports-[backdrop-filter]:bg-background/80">
+        <div className="relative max-w-md">
+          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Tìm cam, giỏ 500K, tráp…"
+            className="pl-10"
+          />
+        </div>
 
-      <div className="mt-6 flex gap-2 overflow-x-auto pb-2">
-        <FilterChip
-          active={!nhom}
-          onClick={() => navigate({ search: { nhom: undefined } })}
-        >
-          Tất cả
-        </FilterChip>
-        {CATEGORIES.map((c) => (
+        <div className="mt-3 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <FilterChip
-            key={c.id}
-            active={nhom === c.id}
-            onClick={() => navigate({ search: { nhom: c.id } })}
+            active={!nhom}
+            onClick={() => navigate({ search: { nhom: undefined } })}
           >
-            {c.label}
+            Tất cả
           </FilterChip>
-        ))}
+          {CATEGORIES.map((c) => (
+            <FilterChip
+              key={c.id}
+              active={nhom === c.id}
+              onClick={() => navigate({ search: { nhom: c.id } })}
+            >
+              {c.label}
+            </FilterChip>
+          ))}
+        </div>
       </div>
 
       {filtered.length === 0 ? (
@@ -99,11 +116,33 @@ function ShopPage() {
           Không có món khớp. Thử nhóm khác hoặc xóa từ khóa.
         </p>
       ) : (
-        <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 lg:grid-cols-4">
-          {filtered.map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
-        </div>
+        <>
+          <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 lg:grid-cols-4">
+            {visible.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+
+          {hasMore ? (
+            <div className="mt-10 flex flex-col items-center gap-2">
+              <Button
+                type="button"
+                size="lg"
+                variant="outline"
+                onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}
+              >
+                Xem thêm {Math.min(PAGE_SIZE, remaining)} sản phẩm
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                Đã hiện {visible.length} / {filtered.length}
+              </p>
+            </div>
+          ) : filtered.length > PAGE_SIZE ? (
+            <p className="mt-10 text-center text-xs text-muted-foreground">
+              Đã hiện tất cả {filtered.length} sản phẩm
+            </p>
+          ) : null}
+        </>
       )}
     </main>
   );
@@ -123,8 +162,8 @@ function FilterChip({
       type="button"
       onClick={onClick}
       className={cn(
-        "h-10 shrink-0 rounded-full px-4 text-sm",
-        active ? "bg-primary text-primary-foreground" : "bg-card text-foreground",
+        "h-10 shrink-0 rounded-full px-4 text-sm transition-colors",
+        active ? "bg-primary text-primary-foreground" : "bg-card text-foreground hover:bg-muted",
       )}
     >
       {children}
