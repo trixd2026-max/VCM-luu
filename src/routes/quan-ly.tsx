@@ -184,7 +184,7 @@ function AdminPage() {
 
       <p className="mt-3 text-sm text-muted-foreground">
         Sửa giá / tồn trên Sheet → web cập nhật. Khi khách đặt hàng, Apps Script tự trừ{" "}
-        <code>ton_kho</code>, tắt <code>con_hang</code> nếu hết, gửi email đơn mới + cảnh báo tồn.
+        <code>ton_kho</code>, tắt <code>con_hang</code> nếu hết, gửi email đơn mới và cảnh báo tồn kho.
       </p>
       <p className="mt-2 text-xs text-muted-foreground">
         Nguồn:{" "}
@@ -194,23 +194,20 @@ function AdminPage() {
         {warning ? ` · ${warning}` : ""}
       </p>
 
-      <h2 className="font-display mt-10 text-xl">Thông báo đơn mới (email + Telegram)</h2>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Zalo cá nhân không có API gửi tin tự động miễn phí. Dùng <strong>email</strong> (mặc định) +{" "}
-        <strong>Telegram</strong> báo điện thoại ngay khi có đơn.
-      </p>
+      <h2 className="font-display mt-10 text-xl">Thông báo đơn mới (email)</h2>
       <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
         <li>
-          Telegram → <code>@BotFather</code> → <code>/newbot</code> → copy bot token.
+          Mỗi đơn qua webhook → email tới <code className="text-foreground">trixd2026@gmail.com</code>{" "}
+          (hoặc Script property <code>ALERT_EMAIL</code>).
         </li>
         <li>
-          Nhắn bot → mở <code>https://api.telegram.org/botTOKEN/getUpdates</code> → lấy chat.id.
+          Cảnh báo tồn kho (hết / sắp hết ≤ 3) cũng gửi cùng địa chỉ email.
         </li>
         <li>
-          Apps Script → Script properties: <code>TELEGRAM_BOT_TOKEN</code> + <code>TELEGRAM_CHAT_ID</code>.
+          Apps Script: chọn <code>testSendAlertEmail</code> → Run → Cho phép Gmail nếu lần đầu.
         </li>
         <li>
-          Copy mã /apps-script.gs bên dưới → Deploy Version: <strong>New</strong>. Chạy <code>testTelegram</code> để thử.
+          Cập nhật mã bên dưới → Deploy → Version: <strong>New</strong> → Deploy.
         </li>
       </ol>
 
@@ -263,9 +260,9 @@ function AdminPage() {
         </div>
       </div>
 
-      <h2 className="font-display mt-12 text-xl">Apps Script (đơn + trừ tồn + báo đơn)</h2>
+      <h2 className="font-display mt-12 text-xl">Apps Script (đơn + trừ tồn + email)</h2>
       <p className="mt-2 text-sm text-muted-foreground">
-        Copy mã → dán Apps Script → Lưu → Deploy Version New. Có sendOrderNotify_ (email + Telegram).
+        Copy mã → dán Apps Script → Lưu → Deploy Version New. Chỉ gửi email (đơn mới + cảnh báo tồn).
       </p>
       <pre className="mt-3 max-h-80 overflow-auto rounded-xl bg-foreground p-4 text-xs leading-relaxed text-background">
         {scriptLoading ? "Đang tải mã…" : script}
