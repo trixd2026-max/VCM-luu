@@ -93,6 +93,87 @@ function AdminPage() {
         {warning ? ` · ${warning}` : ""}
       </p>
 
+      <h2 className="font-display mt-10 text-xl">Checklist — thêm 1 sản phẩm + ảnh</h2>
+      <p className="mt-2 text-sm text-muted-foreground">
+        Làm theo thứ tự. Chọn <strong>một</strong> cách ảnh (A hoặc B).
+      </p>
+
+      <h3 className="mt-5 text-sm font-medium text-foreground">1. Ảnh sản phẩm</h3>
+      <div className="mt-2 space-y-3 text-sm text-muted-foreground">
+        <div className="rounded-xl border border-border bg-card/50 p-4">
+          <p className="font-medium text-foreground">Cách A — Google Drive (nhanh, không cần GitHub)</p>
+          <ol className="mt-2 list-decimal space-y-1.5 pl-5">
+            <li>Upload ảnh lên Drive → Chia sẻ → <strong>Bất kỳ ai có liên kết</strong> (Người xem).</li>
+            <li>Copy link (vd. <code className="text-foreground">https://drive.google.com/file/d/xxxx/view?usp=sharing</code>).</li>
+            <li>
+              Dán vào cột <code className="text-foreground">hinh</code> trên Sheet (cả link hoặc chỉ ID{" "}
+              <code>xxxx</code>).
+            </li>
+          </ol>
+        </div>
+        <div className="rounded-xl border border-border bg-card/50 p-4">
+          <p className="font-medium text-foreground">Cách B — /products/... trên Vercel (ổn định lâu dài)</p>
+          <ol className="mt-2 list-decimal space-y-1.5 pl-5">
+            <li>
+              Mở{" "}
+              <a
+                className="text-primary underline underline-offset-2"
+                href="https://github.com/trixd2026-max/vuoncuamit/tree/main/public/products"
+                target="_blank"
+                rel="noreferrer"
+              >
+                GitHub · public/products
+              </a>
+              .
+            </li>
+            <li>
+              <strong>Add file → Upload files</strong> → kéo ảnh (vd. <code>mang-cau.jpg</code>) → Commit
+              vào <code>main</code>.
+            </li>
+            <li>Đợi Vercel deploy ~1–2 phút.</li>
+            <li>
+              Cột <code className="text-foreground">hinh</code> ghi:{" "}
+              <code className="text-foreground">/products/mang-cau.jpg</code> (đúng tên file, không dấu,
+              không khoảng trắng).
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <h3 className="mt-6 text-sm font-medium text-foreground">2. Dòng sản phẩm trên Google Sheet</h3>
+      <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-sm text-muted-foreground">
+        <li>
+          Thêm 1 dòng mới trên tab sản phẩm. Các cột tối thiểu:{" "}
+          <code className="text-foreground">id</code>, <code className="text-foreground">ten</code>,{" "}
+          <code className="text-foreground">danh_muc</code>, <code className="text-foreground">gia</code>,{" "}
+          <code className="text-foreground">don_vi</code>, <code className="text-foreground">hinh</code>,{" "}
+          <code className="text-foreground">con_hang</code>.
+        </li>
+        <li>
+          <code>id</code>: không dấu, không trùng (vd. <code>mang-cau</code>).
+        </li>
+        <li>
+          <code>danh_muc</code>: một trong{" "}
+          <code>trai-cay-vuon</code> · <code>trai-cay-nhap</code> · <code>gio-trai-cay</code> ·{" "}
+          <code>hop-qua</code> · <code>lang-hoa</code> · <code>trap-cuoi</code>.
+        </li>
+        <li>
+          <code>con_hang</code> = <code>1</code> (còn bán). Tuỳ chọn: <code>ton_kho</code> = số lượng,{" "}
+          <code>noi_bat</code> = <code>1</code>.
+        </li>
+      </ol>
+
+      <h3 className="mt-6 text-sm font-medium text-foreground">3. Đồng bộ web</h3>
+      <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-sm text-muted-foreground">
+        <li>
+          Bấm <strong>Lưu và đồng bộ</strong> bên dưới (hoặc F5 trang cửa hàng).
+        </li>
+        <li>
+          Kiểm tra /cua-hang: thấy sản phẩm mới + ảnh. Nếu ảnh Drive không hiện → kiểm tra quyền chia sẻ
+          “Bất kỳ ai có liên kết”.
+        </li>
+      </ol>
+
       <h2 className="font-display mt-10 text-xl">Tồn kho tự động</h2>
       <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
         <li>
