@@ -195,35 +195,39 @@ export function printDeliverySlip(input: DeliverySlipInput) {
       overflow: hidden;
     }
     .head {
-      background: #1c2e1c;
-      color: #f5f7f2;
+      background: #fff;
+      color: #142018;
       padding: 10px 14px 12px;
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
       gap: 10px;
+      border-bottom: 2px solid #1c2e1c;
     }
     .head-brand {
       font-size: 11px;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      opacity: 0.85;
+      color: #5a6b5a;
     }
     .head-title {
       font-size: 18px;
       font-weight: 700;
       margin-top: 2px;
+      color: #142018;
     }
     .head-id {
       text-align: right;
       font-size: 12px;
       line-height: 1.35;
+      color: #333;
     }
     .head-id strong {
       display: block;
       font-size: 15px;
       font-weight: 700;
       letter-spacing: 0.02em;
+      color: #142018;
     }
     .body { padding: 12px 14px 14px; }
     .section { margin-bottom: 10px; }
@@ -312,10 +316,10 @@ export function printDeliverySlip(input: DeliverySlipInput) {
       font-weight: 700;
       letter-spacing: 0.05em;
       text-transform: uppercase;
-      border: 1px solid #f5f7f2;
+      border: 1px solid #1c2e1c;
+      color: #1c2e1c;
       padding: 2px 6px;
       border-radius: 999px;
-      opacity: 0.9;
       margin-top: 4px;
     }
   </style>
@@ -382,8 +386,8 @@ export function printDeliverySlip(input: DeliverySlipInput) {
 
 function escapeHtml(s: string) {
   return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+    .replace(/&/g, "&")
+    .replace(/</g, "<")
+    .replace(/>/g, ">")
+    .replace(/"/g, """);
 }
