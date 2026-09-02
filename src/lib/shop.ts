@@ -38,6 +38,44 @@ export const BASKET_OCCASIONS = [
   { id: "kinh-vieng", label: "Kính viếng" },
 ] as const;
 
+export type BasketTierOption = {
+  price: number;
+  product?: Product;
+};
+
+/**
+ * Lấy danh sách mức giỏ quà từ catalog (Sheet / local).
+ * Nguồn đúng = Sheet: mọi dòng gio-trai-cay còn hàng (con_hang=1).
+ * Gộp trùng giá → ưu tiên noi_bat=1.
+ */
+export function getBasketTiers(products: Product[]): BasketTierOption[] {
+  const baskets = products.filter(
+    (p) => p.category === "gio-trai-cay" && p.inStock && p.price > 0,
+  );
+
+  const byPrice = new Map<number, Product>();
+  for (const p of baskets) {
+    const existing = byPrice.get(p.price);
+    if (!existing) {
+      byPrice.set(p.price, p);
+      continue;
+    }
+    if (p.featured && !existing.featured) byPrice.set(p.price, p);
+  }
+
+  const tiers = [...byPrice.entries()]
+    .sort(([a], [b]) => a - b)
+    .map(([price, product]) => ({ price, product }));
+
+  if (tiers.length > 0) return tiers;
+
+  return FALLBACK_BASKET_TIERS.map((price) => ({ price }));
+}
+
+export function getBasketTierPrices(products: Product[]): number[] {
+  return getBasketTiers(products).map((t) => t.price);
+}
+
 /** Hình thức nhận hàng + phí ship (đồng) */
 export const SHIPPING_OPTIONS = [
   {
@@ -79,7 +117,7 @@ export const DELIVERY_SLOTS = [
 
 export type DeliverySlotId = (typeof DELIVERY_SLOTS)[number]["id"];
 
-/** Ngày nhận: hôm nay / ngày mai / để shop hẹn */
+/** Ngày nhận */
 export const DELIVERY_DAYS = [
   { id: "hom-nay", label: "Hôm nay" },
   { id: "ngay-mai", label: "Ngày mai" },
