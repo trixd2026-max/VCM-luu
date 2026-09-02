@@ -18,13 +18,12 @@ export const SHOP = {
   facebookMessenger: "https://www.facebook.com/messages/t/774179609114947",
 } as const;
 
-/** Mức fallback khi Sheet chưa có sản phẩm giỏ trái cây */
 export const FALLBACK_BASKET_TIERS = [
   300_000, 350_000, 400_000, 450_000, 500_000, 550_000, 600_000, 650_000, 700_000,
   750_000, 800_000, 850_000, 900_000, 1_000_000,
 ] as const;
 
-/** @deprecated Dùng getBasketTiers(products) để đồng bộ từ Sheet */
+/** @deprecated Dùng getBasketTiers(products) */
 export const BASKET_TIERS = FALLBACK_BASKET_TIERS;
 
 export const BASKET_OCCASIONS = [
@@ -43,11 +42,6 @@ export type BasketTierOption = {
   product?: Product;
 };
 
-/**
- * Lấy danh sách mức giỏ quà từ catalog (Sheet / local).
- * Nguồn đúng = Sheet: mọi dòng gio-trai-cay còn hàng (con_hang=1).
- * Gộp trùng giá → ưu tiên noi_bat=1.
- */
 export function getBasketTiers(products: Product[]): BasketTierOption[] {
   const baskets = products.filter(
     (p) => p.category === "gio-trai-cay" && p.inStock && p.price > 0,
@@ -76,7 +70,6 @@ export function getBasketTierPrices(products: Product[]): number[] {
   return getBasketTiers(products).map((t) => t.price);
 }
 
-/** Hình thức nhận hàng + phí ship (đồng) */
 export const SHIPPING_OPTIONS = [
   {
     id: "pickup",
@@ -106,7 +99,6 @@ export const SHIPPING_OPTIONS = [
 
 export type ShippingOptionId = (typeof SHIPPING_OPTIONS)[number]["id"];
 
-/** Khung giờ nhận hàng gợi ý */
 export const DELIVERY_SLOTS = [
   { id: "sang", label: "Sáng (7:00 – 11:00)" },
   { id: "trua", label: "Trưa (11:00 – 14:00)" },
@@ -117,7 +109,6 @@ export const DELIVERY_SLOTS = [
 
 export type DeliverySlotId = (typeof DELIVERY_SLOTS)[number]["id"];
 
-/** Ngày nhận */
 export const DELIVERY_DAYS = [
   { id: "hom-nay", label: "Hôm nay" },
   { id: "ngay-mai", label: "Ngày mai" },
@@ -125,3 +116,76 @@ export const DELIVERY_DAYS = [
 ] as const;
 
 export type DeliveryDayId = (typeof DELIVERY_DAYS)[number]["id"];
+
+/** Gợi ý mức giá theo dịp (đồng) — min/max + mức ưu tiên */
+export const OCCASION_PRICE_HINTS: Record<
+  string,
+  { min: number; max: number; prefer: number; tip: string }
+> = {
+  "kinh-cung": {
+    min: 300_000,
+    max: 550_000,
+    prefer: 400_000,
+    tip: "Giỏ kính cúng thường 300–550K, gọn đẹp đủ lễ",
+  },
+  "bieu-tang": {
+    min: 450_000,
+    max: 900_000,
+    prefer: 500_000,
+    tip: "Biếu sếp / đối tác nên từ 500K trở lên cho chỉn chu",
+  },
+  "sinh-nhat": {
+    min: 400_000,
+    max: 800_000,
+    prefer: 500_000,
+    tip: "Sinh nhật: 400–800K, có thể kèm thiệp lời chúc",
+  },
+  "tham-benh": {
+    min: 300_000,
+    max: 500_000,
+    prefer: 350_000,
+    tip: "Thăm bệnh: giỏ vừa tay, trái dễ ăn, khoảng 300–500K",
+  },
+  tet: {
+    min: 500_000,
+    max: 1_200_000,
+    prefer: 700_000,
+    tip: "Tết / lễ: giỏ sang hơn, từ 500K–1 triệu+",
+  },
+  "khai-truong": {
+    min: 600_000,
+    max: 1_500_000,
+    prefer: 800_000,
+    tip: "Khai trương: nổi bật, thường từ 700K–1 triệu+",
+  },
+  "hoa-vieng": {
+    min: 500_000,
+    max: 1_200_000,
+    prefer: 700_000,
+    tip: "Hoa viếng kết hợp trái: tùy ngân sách từ 500K",
+  },
+  "kinh-vieng": {
+    min: 400_000,
+    max: 900_000,
+    prefer: 500_000,
+    tip: "Kính viếng: trang trọng, khoảng 400–800K",
+  },
+};
+
+/** Chọn mức giá gần prefer nhất trong danh sách tiers có sẵn */
+export function suggestTierPrice(prices: number[], occasionId: string): number | null {
+  if (prices.length === 0) return null;
+  const hint = OCCASION_PRICE_HINTS[occasionId];
+  if (!hint) return prices[Math.min(1, prices.length - 1)] ?? prices[0];
+  const inRange = prices.filter((p) => p >= hint.min && p <= hint.max);
+  const pool = inRange.length > 0 ? inRange : prices;
+  return pool.reduce((best, p) =>
+    Math.abs(p - hint.prefer) < Math.abs(best - hint.prefer) ? p : best,
+  );
+}
+
+export function isTierSuggested(price: number, occasionId: string): boolean {
+  const hint = OCCASION_PRICE_HINTS[occasionId];
+  if (!hint) return false;
+  return price >= hint.min && price <= hint.max;
+}
