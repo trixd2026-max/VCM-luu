@@ -49,8 +49,11 @@ export function SiteFooter() {
               <Link to="/trap-cuoi-hoi">Tráp cưới hỏi</Link>
             </li>
             <li>
+              <Link to="/tra-cuu-don">Tra cứu đơn</Link>
+            </li>
+            <li>
               <a href={SHOP.facebook} target="_blank" rel="noreferrer">
-                Facebook 
+                Facebook
               </a>
             </li>
           </ul>

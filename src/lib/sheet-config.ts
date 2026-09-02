@@ -7,16 +7,18 @@ export type SheetConfig = {
   gid: string;
   sheetName: string;
   webhookUrl: string;
+  /** Tab đơn hàng trên cùng Sheet */
+  ordersSheetName: string;
 };
 
 const empty: SheetConfig = {
   sheetId: "1PIwNQOmYupdqww3_Y5i1a4sPYpmHs2LNZlWIUlPsb5U",
-  // Không dùng URL /edit — chỉ sheetId + sheetName (hoặc CSV export thật)
   csvUrl: "",
   gid: "1069887904",
   sheetName: "san-pham-vuon-cua-mit",
   webhookUrl:
     "https://script.google.com/macros/s/AKfycbxzJYDAYzCcZQ1q-RPymdDVBY0NLUIWiq3SjoziSkTX2T1mJjibv3AiCeUv0IO9HKSyVg/exec",
+  ordersSheetName: "DonHang",
 };
 
 type State = SheetConfig & {

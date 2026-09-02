@@ -1,6 +1,7 @@
-import { useState, type ReactNode, useEffect } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { useState, type ReactNode, useEffect, useCallback } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,9 +12,14 @@ import {
   isAdminUnlocked,
   unlockAdmin,
   lockAdmin,
-  getStoredPin,
   setStoredPin,
 } from "@/lib/admin-gate";
+import { lookupOrders } from "@/lib/sheet";
+import {
+  formatOrderTotal,
+  maskWebhookUrl,
+  type ShopOrder,
+} from "@/lib/orders";
 
 export const Route = createFileRoute("/quan-ly")({ component: AdminPage });
 
@@ -27,6 +33,7 @@ function AdminPage() {
   const [pinError, setPinError] = useState("");
   const [newPin, setNewPin] = useState("");
   const [showPinChange, setShowPinChange] = useState(false);
+  const [showWebhook, setShowWebhook] = useState(false);
 
   const cfg = useSheetConfig();
   const reload = useCatalog((s) => s.reload);
@@ -39,8 +46,15 @@ function AdminPage() {
   const [sheetName, setSheetName] = useState(cfg.sheetName);
   const [gid, setGid] = useState(cfg.gid);
   const [webhookUrl, setWebhookUrl] = useState(cfg.webhookUrl);
+  const [ordersSheetName, setOrdersSheetName] = useState(
+    cfg.ordersSheetName || "DonHang",
+  );
   const [script, setScript] = useState("");
   const [scriptLoading, setScriptLoading] = useState(true);
+
+  const [orders, setOrders] = useState<ShopOrder[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [ordersWarning, setOrdersWarning] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -60,6 +74,33 @@ function AdminPage() {
     };
   }, []);
 
+  const loadOrders = useCallback(async () => {
+    setOrdersLoading(true);
+    setOrdersWarning("");
+    try {
+      const res = await lookupOrders({
+        data: {
+          sheetId: sheetId.trim() || cfg.sheetId,
+          ordersSheetName: ordersSheetName.trim() || "DonHang",
+          limit: 25,
+        },
+      });
+      setOrders(res.orders);
+      if (res.warning) setOrdersWarning(res.warning);
+      else if (res.orders.length === 0)
+        setOrdersWarning("Chưa có đơn trên tab DonHang (hoặc chưa đọc được Sheet).");
+    } catch {
+      setOrders([]);
+      setOrdersWarning("Không tải được log đơn.");
+    } finally {
+      setOrdersLoading(false);
+    }
+  }, [sheetId, ordersSheetName, cfg.sheetId]);
+
+  useEffect(() => {
+    if (unlocked) void loadOrders();
+  }, [unlocked, loadOrders]);
+
   async function save() {
     cfg.setConfig({
       sheetId: sheetId.trim(),
@@ -67,6 +108,7 @@ function AdminPage() {
       sheetName: sheetName.trim(),
       gid: gid.trim(),
       webhookUrl: webhookUrl.trim(),
+      ordersSheetName: ordersSheetName.trim() || "DonHang",
     });
     await reload();
     const st = useCatalog.getState();
@@ -75,10 +117,13 @@ function AdminPage() {
     } else {
       toast.error(st.warning || "Chưa đọc được Sheet — kiểm tra chia sẻ & tên tab");
     }
+    void loadOrders();
   }
 
   function downloadCsv() {
-    const blob = new Blob([productsToCsv(LOCAL_PRODUCTS)], { type: "text/csv;charset=utf-8" });
+    const blob = new Blob([productsToCsv(LOCAL_PRODUCTS)], {
+      type: "text/csv;charset=utf-8",
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -88,17 +133,24 @@ function AdminPage() {
   }
 
   const tracked = products.filter((p) => typeof p.stock === "number").length;
-  const low = products.filter((p) => typeof p.stock === "number" && p.stock > 0 && p.stock <= 3).length;
-  const out = products.filter((p) => !p.inStock || (typeof p.stock === "number" && p.stock <= 0)).length;
+  const low = products.filter(
+    (p) => typeof p.stock === "number" && p.stock > 0 && p.stock <= 3,
+  ).length;
+  const out = products.filter(
+    (p) => !p.inStock || (typeof p.stock === "number" && p.stock <= 0),
+  ).length;
 
   if (!unlocked) {
     return (
       <main className="mx-auto flex max-w-sm flex-col px-4 py-16">
-        <p className="text-xs tracking-wide text-muted-foreground uppercase">Chủ cửa hàng</p>
+        <p className="text-xs tracking-wide text-muted-foreground uppercase">
+          Chủ cửa hàng
+        </p>
         <h1 className="font-display mt-1 text-3xl">Nhập mã PIN</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Trang quản lý được bảo vệ. PIN mặc định là <code className="text-foreground">662166</code>{" "}
-          (6 số cuối SĐT shop) — nên đổi sau khi vào.
+          Trang quản lý được bảo vệ. PIN mặc định là{" "}
+          <code className="text-foreground">662166</code> (6 số cuối SĐT shop) —
+          nên đổi sau khi vào.
         </p>
         <form
           className="mt-8 flex flex-col gap-3"
@@ -134,7 +186,9 @@ function AdminPage() {
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-10">
-      <p className="text-xs tracking-wide text-muted-foreground uppercase">Chủ cửa hàng</p>
+      <p className="text-xs tracking-wide text-muted-foreground uppercase">
+        Chủ cửa hàng
+      </p>
       <h1 className="font-display mt-1 text-4xl">Google Sheet & tồn kho</h1>
 
       <div className="mt-4 flex flex-wrap gap-2">
@@ -150,8 +204,16 @@ function AdminPage() {
         >
           Khóa trang
         </Button>
-        <Button type="button" variant="ghost" size="sm" onClick={() => setShowPinChange((v) => !v)}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowPinChange((v) => !v)}
+        >
           Đổi PIN
+        </Button>
+        <Button type="button" variant="ghost" size="sm" asChild>
+          <Link to="/tra-cuu-don">Tra cứu đơn (SĐT)</Link>
         </Button>
       </div>
       {showPinChange ? (
@@ -183,8 +245,8 @@ function AdminPage() {
       ) : null}
 
       <p className="mt-3 text-sm text-muted-foreground">
-        Sửa giá / tồn trên Sheet → web cập nhật. Khi khách đặt hàng, Apps Script tự trừ{" "}
-        <code>ton_kho</code>, tắt <code>con_hang</code> nếu hết, gửi email đơn mới + cảnh báo tồn.
+        Sửa giá / tồn trên Sheet → web cập nhật. Khi khách đặt hàng, Apps Script
+        trừ <code>ton_kho</code>, gửi email đơn mới và cảnh báo tồn kho.
       </p>
       <p className="mt-2 text-xs text-muted-foreground">
         Nguồn:{" "}
@@ -194,42 +256,72 @@ function AdminPage() {
         {warning ? ` · ${warning}` : ""}
       </p>
 
-      <h2 className="font-display mt-10 text-xl">Thông báo đơn mới (email + Telegram)</h2>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Zalo cá nhân không có API gửi tin tự động miễn phí. Dùng <strong>email</strong> (mặc định) +{" "}
-        <strong>Telegram</strong> báo điện thoại ngay khi có đơn.
+      <h2 className="font-display mt-10 text-xl">Đơn gần đây</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Đọc tab <code>{ordersSheetName || "DonHang"}</code> trên cùng Sheet ID.
       </p>
+      <div className="mt-3 flex gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={ordersLoading}
+          onClick={() => void loadOrders()}
+        >
+          {ordersLoading ? "Đang tải…" : "Làm mới log"}
+        </Button>
+      </div>
+      {ordersWarning && orders.length === 0 ? (
+        <p className="mt-3 text-sm text-muted-foreground">{ordersWarning}</p>
+      ) : null}
+      {orders.length > 0 ? (
+        <ul className="mt-4 max-h-96 space-y-2 overflow-y-auto">
+          {orders.map((o) => (
+            <li
+              key={`${o.orderId}-${o.time}-${o.phone}`}
+              className="rounded-xl border border-border bg-card/60 px-3 py-2.5 text-sm"
+            >
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <span className="font-medium">
+                  {o.orderId || "—"} · {o.phone || "?"}
+                </span>
+                <span className="tabular-nums text-muted-foreground">
+                  {formatOrderTotal(o.total)}
+                </span>
+              </div>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {o.time}
+                {o.name ? ` · ${o.name}` : ""}
+              </p>
+              {o.items ? (
+                <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                  {o.items}
+                </p>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
+      <h2 className="font-display mt-10 text-xl">Thông báo đơn (email)</h2>
       <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
         <li>
-          Telegram → <code>@BotFather</code> → <code>/newbot</code> → copy bot token.
+          Email tới <code className="text-foreground">trixd2026@gmail.com</code>
         </li>
         <li>
-          Nhắn bot → mở <code>https://api.telegram.org/botTOKEN/getUpdates</code> → lấy chat.id.
-        </li>
-        <li>
-          Apps Script → Script properties: <code>TELEGRAM_BOT_TOKEN</code> + <code>TELEGRAM_CHAT_ID</code>.
-        </li>
-        <li>
-          Copy mã /apps-script.gs bên dưới → Deploy Version: <strong>New</strong>. Chạy <code>testTelegram</code> để thử.
+          Cảnh báo tồn + đơn mới qua Apps Script. Deploy Version:{" "}
+          <strong>New</strong>.
         </li>
       </ol>
 
-      <h2 className="font-display mt-10 text-xl">Checklist — thêm 1 sản phẩm + ảnh</h2>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Chọn một cách ảnh: Drive (link cột hinh) hoặc GitHub public/products → /products/ten.jpg.
-      </p>
-
-      <h2 className="font-display mt-10 text-xl">Tồn kho tự động</h2>
-      <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
-        <li>
-          Cột <code className="text-foreground">ton_kho</code> trên Sheet (sát <code>con_hang</code>).
-        </li>
-        <li>Để trống = không giới hạn. =0 → Hết hàng.</li>
-      </ol>
-
-      <div className="mt-8 flex flex-col gap-4">
+      <h2 className="font-display mt-10 text-xl">Cấu hình Sheet</h2>
+      <div className="mt-4 flex flex-col gap-4">
         <Field label="Mã bảng (Sheet ID)">
-          <Input value={sheetId} onChange={(e) => setSheetId(e.target.value)} placeholder="1AbCDef..." />
+          <Input
+            value={sheetId}
+            onChange={(e) => setSheetId(e.target.value)}
+            placeholder="1AbCDef..."
+          />
         </Field>
         <Field label="URL CSV xuất bản (để trống nếu dùng Sheet ID)">
           <Input
@@ -240,19 +332,64 @@ function AdminPage() {
         </Field>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Tên tab sản phẩm">
-            <Input value={sheetName} onChange={(e) => setSheetName(e.target.value)} />
+            <Input
+              value={sheetName}
+              onChange={(e) => setSheetName(e.target.value)}
+            />
           </Field>
-          <Field label="gid tab">
+          <Field label="gid tab SP">
             <Input value={gid} onChange={(e) => setGid(e.target.value)} />
           </Field>
         </div>
-        <Field label="Webhook đơn hàng (Apps Script)">
+        <Field label="Tên tab đơn hàng">
           <Input
-            value={webhookUrl}
-            onChange={(e) => setWebhookUrl(e.target.value)}
-            placeholder="https://script.google.com/macros/s/.../exec"
+            value={ordersSheetName}
+            onChange={(e) => setOrdersSheetName(e.target.value)}
+            placeholder="DonHang"
           />
         </Field>
+
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center justify-between gap-2">
+            <Label>Webhook đơn hàng (Apps Script)</Label>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 gap-1.5 px-2"
+              onClick={() => setShowWebhook((v) => !v)}
+            >
+              {showWebhook ? (
+                <>
+                  <EyeOff className="size-3.5" /> Ẩn
+                </>
+              ) : (
+                <>
+                  <Eye className="size-3.5" /> Hiện
+                </>
+              )}
+            </Button>
+          </div>
+          {showWebhook ? (
+            <Input
+              value={webhookUrl}
+              onChange={(e) => setWebhookUrl(e.target.value)}
+              placeholder="https://script.google.com/macros/s/.../exec"
+              autoComplete="off"
+            />
+          ) : (
+            <div className="flex h-10 items-center rounded-md border border-input bg-muted/40 px-3 font-mono text-xs text-muted-foreground">
+              {webhookUrl.trim()
+                ? maskWebhookUrl(webhookUrl)
+                : "Chưa cấu hình webhook"}
+            </div>
+          )}
+          <p className="text-xs text-muted-foreground">
+            URL webhook bị ẩn mặc định — chỉ hiện khi bấm Hiện. Không chia sẻ
+            công khai.
+          </p>
+        </div>
+
         <div className="flex flex-col gap-2 sm:flex-row">
           <Button size="lg" onClick={() => void save()} disabled={loading}>
             {loading ? "Đang đọc bảng…" : "Lưu và đồng bộ"}
@@ -263,9 +400,11 @@ function AdminPage() {
         </div>
       </div>
 
-      <h2 className="font-display mt-12 text-xl">Apps Script (đơn + trừ tồn + báo đơn)</h2>
+      <h2 className="font-display mt-12 text-xl">
+        Apps Script (đơn + trừ tồn + email)
+      </h2>
       <p className="mt-2 text-sm text-muted-foreground">
-        Copy mã → dán Apps Script → Lưu → Deploy Version New. Có sendOrderNotify_ (email + Telegram).
+        Copy mã → dán Apps Script → Lưu → Deploy Version New.
       </p>
       <pre className="mt-3 max-h-80 overflow-auto rounded-xl bg-foreground p-4 text-xs leading-relaxed text-background">
         {scriptLoading ? "Đang tải mã…" : script}

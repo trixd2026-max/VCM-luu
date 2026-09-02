@@ -1,0 +1,115 @@
+import { parseCsv } from "./csv";
+
+export type ShopOrder = {
+  time: string;
+  orderId: string;
+  name: string;
+  phone: string;
+  address: string;
+  note: string;
+  total: string;
+  items: string;
+  type: string;
+};
+
+/** Chuẩn hóa SĐT VN để so khớp */
+export function normalizePhone(raw: string): string {
+  let s = raw.replace(/[^\d+]/g, "");
+  if (s.startsWith("+84")) s = "0" + s.slice(3);
+  else if (s.startsWith("84") && s.length >= 10) s = "0" + s.slice(2);
+  s = s.replace(/^0+/, "0");
+  return s;
+}
+
+function headerKey(h: string) {
+  return h
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, "_");
+}
+
+const COL_MAP: Record<string, keyof ShopOrder> = {
+  thoigian: "time",
+  thoi_gian: "time",
+  time: "time",
+  madon: "orderId",
+  ma_don: "orderId",
+  orderid: "orderId",
+  order_id: "orderId",
+  ten: "name",
+  name: "name",
+  dienthoai: "phone",
+  dien_thoai: "phone",
+  phone: "phone",
+  sdt: "phone",
+  diachi: "address",
+  dia_chi: "address",
+  address: "address",
+  ghichu: "note",
+  ghi_chu: "note",
+  note: "note",
+  tongtien: "total",
+  tong_tien: "total",
+  total: "total",
+  chitiet: "items",
+  chi_tiet: "items",
+  items: "items",
+  loai: "type",
+  type: "type",
+};
+
+export function ordersFromCsv(text: string): ShopOrder[] {
+  const rows = parseCsv(text);
+  if (rows.length < 2) return [];
+  const headers = rows[0].map(headerKey);
+  const keys = headers.map((h) => COL_MAP[h]);
+  const out: ShopOrder[] = [];
+  for (const row of rows.slice(1)) {
+    const o: Partial<ShopOrder> = {};
+    keys.forEach((key, i) => {
+      if (!key) return;
+      o[key] = (row[i] ?? "").trim();
+    });
+    if (!o.orderId && !o.phone) continue;
+    out.push({
+      time: o.time ?? "",
+      orderId: o.orderId ?? "",
+      name: o.name ?? "",
+      phone: o.phone ?? "",
+      address: o.address ?? "",
+      note: o.note ?? "",
+      total: o.total ?? "",
+      items: o.items ?? "",
+      type: o.type ?? "",
+    });
+  }
+  return out.reverse();
+}
+
+export function maskWebhookUrl(url: string): string {
+  const u = url.trim();
+  if (!u) return "";
+  try {
+    const path = new URL(u).pathname;
+    const parts = path.split("/").filter(Boolean);
+    const idx = parts.indexOf("s");
+    if (idx >= 0 && parts[idx + 1]) {
+      const token = parts[idx + 1];
+      const masked =
+        token.length <= 8 ? "••••••••" : token.slice(0, 4) + "••••" + token.slice(-4);
+      return u.replace(token, masked);
+    }
+  } catch {
+    /* ignore */
+  }
+  if (u.length < 24) return "••••••••";
+  return u.slice(0, 28) + "…••••…" + u.slice(-12);
+}
+
+export function formatOrderTotal(total: string): string {
+  const n = Number(String(total).replace(/[^\d.-]/g, ""));
+  if (!Number.isFinite(n) || n === 0) return total || "—";
+  return new Intl.NumberFormat("vi-VN").format(n) + "đ";
+}
