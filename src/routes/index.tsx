@@ -104,8 +104,7 @@ function Home() {
               </p>
               <h2 className="font-display mt-1 text-3xl">Hôm nay ngon</h2>
               <p className="mt-1 max-w-xl text-sm text-muted-foreground">
-                Món đánh dấu cột Sheet <code className="text-xs">noi_bat</code> — đổi theo
-                trái chín trong ngày.
+                Trái đang ngon trong ngày — chị Hằng chọn theo mùa.
               </p>
             </div>
             <Link
@@ -124,8 +123,7 @@ function Home() {
             </div>
           ) : (
             <p className="px-4 py-10 text-center text-sm text-muted-foreground sm:px-6">
-              Chưa có sản phẩm nổi bật. Trên Sheet, cột <code>noi_bat</code> ghi{" "}
-              <code>1</code> cho món muốn hiện ở đây.
+              Đang cập nhật món ngon trong ngày. Xem cửa hàng hoặc nhắn Zalo chị Hằng.
             </p>
           )}
         </div>
