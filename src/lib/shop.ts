@@ -38,41 +38,52 @@ export const BASKET_OCCASIONS = [
   { id: "kinh-vieng", label: "Kính viếng" },
 ] as const;
 
-export type BasketTierOption = {
-  price: number;
-  product?: Product;
-};
+/** Hình thức nhận hàng + phí ship (đồng) */
+export const SHIPPING_OPTIONS = [
+  {
+    id: "pickup",
+    label: "Tự đến lấy tại vườn",
+    fee: 0,
+    hint: "Xóm 1B, Thôn Phụng Sơn, Tuy Phước Đông",
+  },
+  {
+    id: "xa",
+    label: "Giao trong xã Tuy Phước Đông",
+    fee: 15_000,
+    hint: "Thường giao trong ngày",
+  },
+  {
+    id: "huyen",
+    label: "Giao huyện / khu vực lân cận",
+    fee: 30_000,
+    hint: "Lịch giao theo thỏa thuận",
+  },
+  {
+    id: "xa-hon",
+    label: "Xa hơn — phí thỏa thuận",
+    fee: 0,
+    hint: "Shop báo phí ship khi xác nhận đơn",
+  },
+] as const;
 
-/**
- * Lấy danh sách mức giỏ quà từ catalog (Sheet / local).
- * Nguồn đúng = Sheet: mọi dòng gio-trai-cay còn hàng (con_hang=1).
- * Gộp trùng giá → ưu tiên noi_bat=1.
- */
-export function getBasketTiers(products: Product[]): BasketTierOption[] {
-  const baskets = products.filter(
-    (p) => p.category === "gio-trai-cay" && p.inStock && p.price > 0,
-  );
+export type ShippingOptionId = (typeof SHIPPING_OPTIONS)[number]["id"];
 
-  const byPrice = new Map<number, Product>();
-  for (const p of baskets) {
-    const existing = byPrice.get(p.price);
-    if (!existing) {
-      byPrice.set(p.price, p);
-      continue;
-    }
-    // Ưu tiên nổi bật
-    if (p.featured && !existing.featured) byPrice.set(p.price, p);
-  }
+/** Khung giờ nhận hàng gợi ý */
+export const DELIVERY_SLOTS = [
+  { id: "sang", label: "Sáng (7:00 – 11:00)" },
+  { id: "trua", label: "Trưa (11:00 – 14:00)" },
+  { id: "chieu", label: "Chiều (14:00 – 17:00)" },
+  { id: "toi", label: "Tối (17:00 – 20:00)" },
+  { id: "linh-hoat", label: "Linh hoạt — shop gọi trước" },
+] as const;
 
-  const tiers = [...byPrice.entries()]
-    .sort(([a], [b]) => a - b)
-    .map(([price, product]) => ({ price, product }));
+export type DeliverySlotId = (typeof DELIVERY_SLOTS)[number]["id"];
 
-  if (tiers.length > 0) return tiers;
+/** Ngày nhận: hôm nay / ngày mai / để shop hẹn */
+export const DELIVERY_DAYS = [
+  { id: "hom-nay", label: "Hôm nay" },
+  { id: "ngay-mai", label: "Ngày mai" },
+  { id: "hen", label: "Hẹn ngày khác (ghi chú)" },
+] as const;
 
-  return FALLBACK_BASKET_TIERS.map((price) => ({ price }));
-}
-
-export function getBasketTierPrices(products: Product[]): number[] {
-  return getBasketTiers(products).map((t) => t.price);
-}
+export type DeliveryDayId = (typeof DELIVERY_DAYS)[number]["id"];

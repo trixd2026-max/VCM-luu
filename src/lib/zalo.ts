@@ -10,6 +10,13 @@ export function buildOrderMessage(input: {
   address: string;
   note: string;
   lines: CartLine[];
+  /** Phí ship (đồng), 0 nếu tự lấy / thỏa thuận */
+  shippingFee?: number;
+  shippingLabel?: string;
+  deliveryDay?: string;
+  deliverySlot?: string;
+  /** Tổng = hàng + ship */
+  grandTotal?: number;
 }) {
   const items = input.lines
     .map((l) => {
@@ -17,17 +24,26 @@ export function buildOrderMessage(input: {
       return `- ${l.qty} ${l.unit} ${l.name}${note}: ${formatVnd(l.price * l.qty)}`;
     })
     .join("\n");
-  const total = formatVnd(cartTotal(input.lines));
+  const subtotal = cartTotal(input.lines);
+  const fee = input.shippingFee ?? 0;
+  const grand = input.grandTotal ?? subtotal + fee;
+
   return [
     `Xin chào ${SHOP.name},`,
     `Em muốn đặt đơn ${input.orderId}:`,
     "",
     items,
     "",
-    `Tổng: ${total}`,
+    `Tiền hàng: ${formatVnd(subtotal)}`,
+    input.shippingLabel
+      ? `Ship: ${input.shippingLabel}${fee > 0 ? ` (${formatVnd(fee)})` : fee === 0 && input.shippingLabel.includes("thỏa") ? " (thỏa thuận)" : " (miễn phí)"}`
+      : null,
+    `Tổng: ${formatVnd(grand)}`,
     `Tên: ${input.name}`,
     `SĐT: ${input.phone}`,
     input.address ? `Địa chỉ: ${input.address}` : "",
+    input.deliveryDay ? `Ngày nhận: ${input.deliveryDay}` : "",
+    input.deliverySlot ? `Giờ nhận: ${input.deliverySlot}` : "",
     input.note ? `Ghi chú: ${input.note}` : "",
   ]
     .filter(Boolean)
