@@ -20,6 +20,7 @@ import {
   type DeliveryDayId,
 } from "@/lib/shop";
 import { buildOrderMessage, copyZaloMessage } from "@/lib/zalo";
+import { saveLastOrder } from "@/lib/last-order";
 import { useCartReady } from "@/hooks/use-hydrated";
 import { cn } from "@/lib/utils";
 
@@ -154,18 +155,36 @@ function CheckoutPage() {
       deliverySlot: slotLabel,
       grandTotal,
     });
+
+    saveLastOrder({
+      orderId,
+      name: payload.name,
+      phone: payload.phone,
+      address: isPickup ? "Tự đến lấy tại vườn" : payload.address,
+      note: note.trim(),
+      itemsText: items,
+      subtotal,
+      shippingFee,
+      shippingLabel: shipping.label,
+      deliveryDay: dayLabel,
+      deliverySlot: slotLabel,
+      grandTotal,
+      message,
+      createdAt: payload.createdAt,
+    });
+
     clear();
     setSending(false);
 
     if (via === "call") {
       window.location.href = `tel:${SHOP.phone}`;
-      void navigate({ to: "/" });
+      void navigate({ to: "/dat-xong" });
       return;
     }
     const copied = await copyZaloMessage(message);
-    if (copied) toast.success("Đã copy đơn — dán vào Zalo gửi chị Hằng");
-    else toast.message("Mở Zalo và gửi đơn cho chị Hằng");
-    void navigate({ to: "/" });
+    if (copied) toast.success("Đã copy đơn — mở Zalo và dán gửi chị Hằng");
+    else toast.message("Vào trang xác nhận để copy tin / mở Zalo");
+    void navigate({ to: "/dat-xong" });
   }
 
   return (
