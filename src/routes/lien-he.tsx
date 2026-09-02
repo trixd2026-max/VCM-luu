@@ -1,80 +1,79 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { MapPin, Phone, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SHOP } from "@/lib/shop";
 import { ZaloMark } from "@/components/zalo-icon";
+import { qrImageUrl } from "@/lib/zalo";
 
 export const Route = createFileRoute("/lien-he")({ component: ContactPage });
 
 function ContactPage() {
-  return (
-    <main className="mx-auto max-w-3xl px-4 py-10">
-      <p className="text-xs tracking-wide text-muted-foreground uppercase">Ghé vườn</p>
-      <h1 className="font-display mt-1 text-4xl">Liên hệ</h1>
-      <p className="mt-3 text-muted-foreground">
-        {SHOP.owner} nhận đặt giỏ, hộp quà, tráp cưới hỏi và hoa viếng. Nhắn Zalo
-        hoặc gọi trước khi ghé lấy hàng.
-      </p>
+  const zaloQr = qrImageUrl(SHOP.zalo, 180);
+  const phoneQr = qrImageUrl(`tel:${SHOP.phone}`, 180);
 
-      <div className="mt-8 overflow-hidden rounded-2xl">
-        <img src="/products/harvest.jpg" alt="Trái cây tại vườn" className="aspect-video w-full object-cover" />
+  return (
+    <main className="mx-auto max-w-2xl px-4 py-10">
+      <p className="text-xs tracking-wide text-muted-foreground uppercase">Liên hệ</p>
+      <h1 className="font-display mt-1 text-4xl">{SHOP.name}</h1>
+      <p className="mt-2 text-muted-foreground">{SHOP.tagline}</p>
+
+      <div className="mt-8 space-y-4 rounded-2xl border border-border bg-card p-5 text-sm leading-relaxed">
+        <p>
+          <strong className="text-foreground">Chủ vườn:</strong> {SHOP.owner}
+        </p>
+        <p>
+          <strong className="text-foreground">Điện thoại:</strong>{" "}
+          <a className="text-primary underline-offset-2 hover:underline" href={`tel:${SHOP.phone}`}>
+            {SHOP.phoneDisplay}
+          </a>
+          {SHOP.phone2 ? (
+            <>
+              {" · "}
+              <a
+                className="text-primary underline-offset-2 hover:underline"
+                href={`tel:${SHOP.phone2}`}
+              >
+                {SHOP.phone2Display}
+              </a>
+            </>
+          ) : null}
+        </p>
+        <p>
+          <strong className="text-foreground">Địa chỉ:</strong> {SHOP.address}
+        </p>
+        <p>
+          <strong className="text-foreground">Giờ mở cửa:</strong> {SHOP.hours}
+        </p>
       </div>
 
-      <ul className="mt-8 flex flex-col gap-5">
-        <li className="flex gap-3">
-          <ZaloMark className="mt-0.5 size-8" />
-          <div>
-            <p className="font-medium">Zalo {SHOP.owner}</p>
-            <a
-              href={SHOP.zalo}
-              target="_blank"
-              rel="noreferrer"
-              className="text-sm tabular-nums"
-            >
-              {SHOP.phoneDisplay}
-            </a>
-          </div>
-        </li>
-        <li className="flex gap-3">
-          <Phone className="mt-0.5 size-5 text-primary" />
-          <div>
-            <p className="font-medium">Điện thoại</p>
-            <a href={`tel:${SHOP.phone}`} className="text-sm tabular-nums">
-              {SHOP.phoneDisplay}
-            </a>
-            <a href={`tel:${SHOP.phone2}`} className="mt-1 block text-sm tabular-nums">
-              {SHOP.phone2Display}
-            </a>
-          </div>
-        </li>
-        <li className="flex gap-3">
-          <MapPin className="mt-0.5 size-5 text-primary" />
-          <div>
-            <p className="font-medium">Địa chỉ</p>
-            <p className="text-sm text-muted-foreground">{SHOP.address}</p>
-          </div>
-        </li>
-        <li className="flex gap-3">
-          <Clock className="mt-0.5 size-5 text-primary" />
-          <div>
-            <p className="font-medium">Giờ mở</p>
-            <p className="text-sm text-muted-foreground">{SHOP.hours}</p>
-          </div>
-        </li>
-        <li className="flex gap-3">
-          <span className="mt-0.5 grid size-5 place-items-center text-sm font-bold text-primary">f</span>
-          <div>
-            <p className="font-medium">Facebook</p>
-            <a href={SHOP.facebook} target="_blank" rel="noreferrer" className="text-sm">
-              Vườn Của Mít
-            </a>
-          </div>
-        </li>
-      </ul>
+      <div className="mt-8 grid gap-4 sm:grid-cols-2">
+        <div className="flex flex-col items-center rounded-2xl border border-border bg-card p-5 text-center">
+          <img
+            src={zaloQr}
+            alt="QR Zalo Vườn Của Mít"
+            width={180}
+            height={180}
+            className="rounded-lg bg-white p-2"
+          />
+          <p className="mt-3 text-sm font-medium">Quét Zalo chị Hằng</p>
+          <p className="mt-1 text-xs text-muted-foreground">Mở Zalo → quét mã → nhắn đặt hàng</p>
+        </div>
+        <div className="flex flex-col items-center rounded-2xl border border-border bg-card p-5 text-center">
+          <img
+            src={phoneQr}
+            alt={`QR gọi ${SHOP.phoneDisplay}`}
+            width={180}
+            height={180}
+            className="rounded-lg bg-white p-2"
+          />
+          <p className="mt-3 text-sm font-medium">Quét để gọi {SHOP.phoneDisplay}</p>
+          <p className="mt-1 text-xs text-muted-foreground">Điện thoại hỗ trợ quét QR gọi nhanh</p>
+        </div>
+      </div>
 
-      <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+      <div className="mt-8 flex flex-wrap gap-3">
         <Button asChild size="lg">
-          <a href={SHOP.zalo} target="_blank" rel="noreferrer">
+          <a href={SHOP.zalo} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2">
+            <ZaloMark className="size-4" />
             Nhắn Zalo
           </a>
         </Button>
