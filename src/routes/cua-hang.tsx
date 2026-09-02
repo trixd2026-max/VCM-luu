@@ -13,6 +13,28 @@ type ShopSearch = { nhom?: string; q?: string };
 /** Số SP mỗi lần “Xem thêm” */
 const PAGE_SIZE = 24;
 
+type PriceFilterId = "all" | "lt100" | "100-300" | "300-500" | "gte500";
+
+const PRICE_FILTERS: {
+  id: PriceFilterId;
+  label: string;
+  match: (price: number) => boolean;
+}[] = [
+  { id: "all", label: "Mọi giá", match: () => true },
+  { id: "lt100", label: "Dưới 100K", match: (p) => p > 0 && p < 100_000 },
+  {
+    id: "100-300",
+    label: "100 – 300K",
+    match: (p) => p >= 100_000 && p < 300_000,
+  },
+  {
+    id: "300-500",
+    label: "300 – 500K",
+    match: (p) => p >= 300_000 && p < 500_000,
+  },
+  { id: "gte500", label: "Từ 500K", match: (p) => p >= 500_000 },
+];
+
 export const Route = createFileRoute("/cua-hang")({
   validateSearch: (s: Record<string, unknown>): ShopSearch => ({
     nhom: typeof s.nhom === "string" ? s.nhom : undefined,
@@ -31,22 +53,26 @@ function ShopPage() {
   const loaded = useCatalog((s) => s.loaded);
   const [query, setQuery] = useState(search.q ?? "");
   const nhom = (search.nhom as CategoryId | undefined) ?? undefined;
+  const [priceId, setPriceId] = useState<PriceFilterId>("all");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   useEffect(() => {
     if (!loaded) void load();
   }, [loaded, load]);
 
-  // Đổi nhóm / từ khóa → về trang đầu
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
-  }, [nhom, query]);
+  }, [nhom, query, priceId]);
+
+  const priceMatch =
+    PRICE_FILTERS.find((f) => f.id === priceId)?.match ?? (() => true);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return products.filter((p) => {
       if (!p.inStock) return false;
       if (nhom && p.category !== nhom) return false;
+      if (!priceMatch(p.price)) return false;
       if (!q) return true;
       return (
         p.name.toLowerCase().includes(q) ||
@@ -54,7 +80,7 @@ function ShopPage() {
         p.description.toLowerCase().includes(q)
       );
     });
-  }, [products, nhom, query]);
+  }, [products, nhom, query, priceMatch]);
 
   const visible = filtered.slice(0, visibleCount);
   const hasMore = visibleCount < filtered.length;
@@ -68,21 +94,12 @@ function ShopPage() {
         Giá theo ngày. Đặt giỏ hoặc gọi chị Hằng để chọn trái đang ngon.
       </p>
       {source === "sheet" ? (
-        <p className="mt-3 text-xs text-primary">
-          Đã đồng bộ từ Google Sheet · {filtered.length} sản phẩm đang hiện
-          {hasMore ? ` · đang xem ${visible.length}` : ""}
-        </p>
-      ) : warning ? (
-        <p className="mt-3 text-xs text-muted-foreground">{warning}</p>
-      ) : (
-        <p className="mt-3 text-xs text-muted-foreground">
-          Đang dùng bảng mẫu — vào /quan-ly để kết nối Sheet
-        </p>
-      )}
+        <p className="mt-1 text-xs text-muted-foreground">Đồng bộ từ Google Sheet</p>
+      ) : null}
+      {warning ? <p className="mt-1 text-xs text-amber-700">{warning}</p> : null}
 
-      {/* Sticky: tìm kiếm + lọc danh mục */}
-      <div className="sticky top-16 z-30 -mx-4 mt-8 border-b border-border/60 bg-background/95 px-4 py-3 backdrop-blur-md supports-[backdrop-filter]:bg-background/80">
-        <div className="relative max-w-md">
+      <div className="sticky top-14 z-20 -mx-4 mt-8 border-b border-border/80 bg-background/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80 md:top-16">
+        <div className="relative">
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={query}
@@ -109,15 +126,37 @@ function ShopPage() {
             </FilterChip>
           ))}
         </div>
+
+        <div className="mt-2 flex gap-2 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {PRICE_FILTERS.map((f) => (
+            <FilterChip
+              key={f.id}
+              active={priceId === f.id}
+              onClick={() => setPriceId(f.id)}
+              tone="price"
+            >
+              {f.label}
+            </FilterChip>
+          ))}
+        </div>
       </div>
 
       {filtered.length === 0 ? (
         <p className="py-16 text-center text-sm text-muted-foreground">
-          Không có món khớp. Thử nhóm khác hoặc xóa từ khóa.
+          Không có món khớp. Thử nhóm khác, khoảng giá khác, hoặc xóa từ khóa.
         </p>
       ) : (
         <>
-          <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 lg:grid-cols-4">
+          <p className="mt-6 text-xs text-muted-foreground">
+            {filtered.length} sản phẩm
+            {priceId !== "all"
+              ? ` · ${PRICE_FILTERS.find((f) => f.id === priceId)?.label}`
+              : ""}
+            {nhom
+              ? ` · ${CATEGORIES.find((c) => c.id === nhom)?.label ?? nhom}`
+              : ""}
+          </p>
+          <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 lg:grid-cols-4">
             {visible.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}
@@ -152,18 +191,25 @@ function FilterChip({
   active,
   onClick,
   children,
+  tone = "category",
 }: {
   active: boolean;
   onClick: () => void;
   children: ReactNode;
+  tone?: "category" | "price";
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
       className={cn(
-        "h-10 shrink-0 rounded-full px-4 text-sm transition-colors",
-        active ? "bg-primary text-primary-foreground" : "bg-card text-foreground hover:bg-muted",
+        "h-9 shrink-0 rounded-full px-3.5 text-sm transition-colors",
+        tone === "price" && "border border-border/80",
+        active
+          ? tone === "price"
+            ? "border-primary bg-primary/10 text-primary"
+            : "bg-primary text-primary-foreground"
+          : "bg-card text-foreground hover:bg-muted",
       )}
     >
       {children}
