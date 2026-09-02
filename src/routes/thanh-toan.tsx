@@ -39,6 +39,7 @@ function CheckoutPage() {
   const [note, setNote] = useState("");
   const [shippingId, setShippingId] = useState<ShippingOptionId>("xa");
   const [dayId, setDayId] = useState<DeliveryDayId>("hom-nay");
+  const [deliveryDate, setDeliveryDate] = useState("");
   const [slotId, setSlotId] = useState<DeliverySlotId>("chieu");
   const [sending, setSending] = useState(false);
 
@@ -50,7 +51,32 @@ function CheckoutPage() {
   const shippingFee = shipping.fee;
   const grandTotal = subtotal + shippingFee;
 
-  const dayLabel = DELIVERY_DAYS.find((d) => d.id === dayId)?.label ?? "";
+  const todayStr = useMemo(() => {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }, []);
+
+  const dayLabel = useMemo(() => {
+    if (dayId === "hen" && deliveryDate) {
+      try {
+        const [y, m, d] = deliveryDate.split("-").map(Number);
+        const dt = new Date(y, m - 1, d);
+        return dt.toLocaleDateString("vi-VN", {
+          weekday: "long",
+          day: "numeric",
+          month: "numeric",
+          year: "numeric",
+        });
+      } catch {
+        return deliveryDate;
+      }
+    }
+    return DELIVERY_DAYS.find((d) => d.id === dayId)?.label ?? "";
+  }, [dayId, deliveryDate]);
+
   const slotLabel = DELIVERY_SLOTS.find((s) => s.id === slotId)?.label ?? "";
 
   if (!ready) {
@@ -76,6 +102,10 @@ function CheckoutPage() {
   async function placeOrder(via: "zalo" | "call") {
     if (!phone.trim()) {
       toast.error("Nhập số điện thoại để cửa hàng liên hệ.");
+      return;
+    }
+    if (dayId === "hen" && !deliveryDate) {
+      toast.error("Chọn ngày giao trên lịch.");
       return;
     }
     if (!isPickup && !address.trim()) {
@@ -126,6 +156,7 @@ function CheckoutPage() {
       items,
       itemsJson: JSON.stringify(normalizedItems),
       type: "don-hang",
+      status: "Moi",
       createdAt: new Date().toISOString(),
     };
 
@@ -283,11 +314,29 @@ function CheckoutPage() {
                       type="radio"
                       name="day"
                       checked={dayId === d.id}
-                      onChange={() => setDayId(d.id)}
+                      onChange={() => {
+                        setDayId(d.id);
+                        if (d.id !== "hen") setDeliveryDate("");
+                      }}
                     />
                     {d.label}
                   </label>
                 ))}
+                {dayId === "hen" ? (
+                  <label className="mt-1 flex flex-col gap-1.5 rounded-lg border border-primary/40 bg-primary/5 px-3 py-2">
+                    <span className="text-xs font-medium text-muted-foreground">
+                      Chọn ngày giao
+                    </span>
+                    <input
+                      type="date"
+                      className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+                      min={todayStr}
+                      value={deliveryDate}
+                      onChange={(e) => setDeliveryDate(e.target.value)}
+                      required
+                    />
+                  </label>
+                ) : null}
               </div>
             </fieldset>
 
@@ -319,7 +368,7 @@ function CheckoutPage() {
             <Textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="Lời thiệp, dị ứng, hẹn ngày cụ thể…"
+              placeholder="Lời thiệp, dị ứng, hẹn chi tiết…"
             />
           </Field>
 
