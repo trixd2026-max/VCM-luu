@@ -156,7 +156,7 @@ function Home() {
       <section className="bg-primary text-primary-foreground">
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 lg:grid-cols-2">
           <div className="overflow-hidden rounded-2xl">
-            <img src="/products/sau-rieng-tai-vuon.jpg" alt="Sầu riêng tại vườn" className="aspect-portrait w-full object-cover lg:aspect-wide" />
+            <img src="/products/mau-gio-trai-cay.jpg" alt="Mẫu giỏ trái cây" className="aspect-portrait w-full object-cover lg:aspect-wide" />
           </div>
           <div>
             <p className="text-xs tracking-[0.2em] uppercase opacity-70">Câu chuyện</p>
