@@ -1,10 +1,16 @@
 /*****************************************************************
- * Vuon Cua Mit - Webhook: don hang + tru ton + email
+ * Vuon Cua Mit - Webhook + tu dong hoa Google Sheet
  *
+ * Webhook doPost:
  * - Ghi don vao tab DonHang (+ TrangThai)
  * - Cap nhat trang thai (action=updateStatus)
  * - Tru ton_kho, cap nhat con_hang
  * - Gui email don moi + canh bao ton kho
+ *
+ * Tu dong hoa (chay trong Sheet: menu "Vuon Cua Mit"):
+ * - setupShopSheets: cot, header, dropdown TrangThai, to mau
+ * - sendDailyOrderSummary: email tom tat don trong ngay
+ * - createDailySummaryTrigger: hen 20:00 moi ngay (gio VN)
  *
  * Script properties (tuy chon): ALERT_EMAIL
  *****************************************************************/
@@ -238,7 +244,7 @@ function decrementStock_(sheet, lines) {
   if (stockCol < 0) stockCol = headers.indexOf("tonkho");
   var inStockCol = headers.indexOf("con_hang");
   if (idCol < 0 || stockCol < 0) return [];
-  var data = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
+  var data = sheet.getRange(2, 1, lastRow, lastCol).getValues();
   var idToRow = {};
   for (var r = 0; r < data.length; r++) {
     idToRow[String(data[r][idCol]).trim()] = r;
@@ -280,7 +286,7 @@ function scanLowStock_(sheet) {
   var stockCol = headers.indexOf("ton_kho");
   if (stockCol < 0) stockCol = headers.indexOf("tonkho");
   if (idCol < 0 || stockCol < 0) return [];
-  var data = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
+  var data = sheet.getRange(2, 1, lastRow, lastCol).getValues();
   var alerts = [];
   var threshold = LOW_STOCK_THRESHOLD;
   for (var r = 0; r < data.length; r++) {
@@ -326,4 +332,242 @@ function sendStockAlertEmail_(alerts, context) {
     }
   }
   MailApp.sendEmail({ to: to, subject: subject, body: bodyLines.join("\n") });
+}
+
+/* ================================================================
+ * TU DONG HOA SHEET — menu + setup + email cuoi ngay
+ * ================================================================ */
+
+/** Menu khi mo Google Sheet */
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu("Vuon Cua Mit")
+    .addItem("1. Thiet lap Sheet (cot + mau + dropdown)", "setupShopSheets")
+    .addItem("2. To mau trang thai don", "applyStatusColors")
+    .addItem("3. Dien TrangThai trong (Moi)", "fillMissingOrderStatus")
+    .addSeparator()
+    .addItem("4. Gui tom tat don hom nay (email)", "sendDailyOrderSummary")
+    .addItem("5. Bat email tom tat 20:00 moi ngay", "createDailySummaryTrigger")
+    .addItem("6. Tat hen gio tom tat", "removeDailySummaryTriggers")
+    .addSeparator()
+    .addItem("Kiem tra ton kho + gui canh bao", "runStockCheckNow")
+    .addToUi();
+}
+
+/** Thiet lap tab DonHang + format co ban */
+function setupShopSheets() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var orders = ss.getSheetByName("DonHang");
+  if (!orders) {
+    orders = ss.insertSheet("DonHang");
+  }
+  ensureOrderHeaders_(orders);
+  ensureOrderStatusColumn_(orders);
+  fillMissingOrderStatus();
+  applyStatusDropdown_(orders);
+  applyStatusColors();
+  orders.setFrozenRows(1);
+  var lastCol = Math.max(orders.getLastColumn(), 10);
+  orders.getRange(1, 1, 1, lastCol)
+    .setFontWeight("bold")
+    .setBackground("#e8f0e8");
+  SpreadsheetApp.getUi().alert(
+    "Da thiet lap tab DonHang:\n" +
+    "- Header + cot TrangThai\n" +
+    "- Dropdown trang thai\n" +
+    "- To mau theo trang thai\n" +
+    "- Dong header in dam"
+  );
+}
+
+function ensureOrderHeaders_(sheet) {
+  var lastCol = sheet.getLastColumn();
+  if (lastCol < 1 || !String(sheet.getRange(1, 1).getValue() || "").trim()) {
+    sheet.getRange(1, 1, 1, 10).setValues([[
+      "ThoiGian", "MaDon", "Ten", "DienThoai", "DiaChi",
+      "GhiChu", "TongTien", "ChiTiet", "Loai", "TrangThai"
+    ]]);
+  }
+}
+
+function applyStatusDropdown_(sheet) {
+  var statusCol = ensureOrderStatusColumn_(sheet);
+  var lastRow = Math.max(sheet.getLastRow(), 2);
+  var rule = SpreadsheetApp.newDataValidation()
+    .requireValueInList(
+      ["Mới", "Đã xác nhận", "Đang giao", "Xong", "Hủy", "Moi"],
+      true
+    )
+    .setAllowInvalid(true)
+    .build();
+  sheet.getRange(2, statusCol + 1, Math.max(lastRow, 500), statusCol + 1).setDataValidation(rule);
+}
+
+/** To mau cot TrangThai */
+function applyStatusColors() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("DonHang");
+  if (!sheet) return;
+  var statusCol = ensureOrderStatusColumn_(sheet);
+  var col = statusCol + 1;
+  var range = sheet.getRange(2, col, 1000, 1);
+  range.clearFormat();
+  var rules = [];
+  function colorRule(text, bg, fg) {
+    return SpreadsheetApp.newConditionalFormatRule()
+      .whenTextEqualTo(text)
+      .setBackground(bg)
+      .setFontColor(fg)
+      .setRanges([range])
+      .build();
+  }
+  rules.push(colorRule("Mới", "#dbeafe", "#1e3a8a"));
+  rules.push(colorRule("Moi", "#dbeafe", "#1e3a8a"));
+  rules.push(colorRule("Đã xác nhận", "#fef3c7", "#92400e"));
+  rules.push(colorRule("Da xac nhan", "#fef3c7", "#92400e"));
+  rules.push(colorRule("Đang giao", "#ffedd5", "#9a3412"));
+  rules.push(colorRule("Dang giao", "#ffedd5", "#9a3412"));
+  rules.push(colorRule("Xong", "#d1fae5", "#065f46"));
+  rules.push(colorRule("Hủy", "#fee2e2", "#991b1b"));
+  rules.push(colorRule("Huy", "#fee2e2", "#991b1b"));
+  var existing = sheet.getConditionalFormatRules() || [];
+  sheet.setConditionalFormatRules(existing.concat(rules));
+}
+
+/** Dien o TrangThai trong = Mới */
+function fillMissingOrderStatus() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("DonHang");
+  if (!sheet) return;
+  var statusCol = ensureOrderStatusColumn_(sheet);
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return;
+  var range = sheet.getRange(2, statusCol + 1, lastRow, statusCol + 1);
+  var vals = range.getValues();
+  var changed = 0;
+  for (var i = 0; i < vals.length; i++) {
+    if (!String(vals[i][0] || "").trim()) {
+      vals[i][0] = "Mới";
+      changed++;
+    }
+  }
+  if (changed) range.setValues(vals);
+}
+
+/** Email tom tat don trong ngay */
+function sendDailyOrderSummary() {
+  var to = getAlertEmail_();
+  if (!to) {
+    Logger.log("Chua co ALERT_EMAIL");
+    return;
+  }
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("DonHang");
+  if (!sheet || sheet.getLastRow() < 2) {
+    MailApp.sendEmail({
+      to: to,
+      subject: "[" + SHOP_NAME + "] Tom tat don: khong co don",
+      body: "Khong co du lieu tab DonHang.\n" + new Date().toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" }),
+    });
+    return;
+  }
+  var lastCol = sheet.getLastColumn();
+  var lastRow = sheet.getLastRow();
+  var data = sheet.getRange(2, 1, lastRow, lastCol).getValues();
+  var today = new Date();
+  var tz = "Asia/Ho_Chi_Minh";
+  var todayStr = Utilities.formatDate(today, tz, "yyyy-MM-dd");
+
+  var timeCol = findHeaderCol_(sheet, ["thoigian", "thoi_gian", "time"]);
+  var idCol = findHeaderCol_(sheet, ["madon", "ma_don", "orderid"]);
+  var nameCol = findHeaderCol_(sheet, ["ten", "name"]);
+  var phoneCol = findHeaderCol_(sheet, ["dienthoai", "dien_thoai", "phone", "sdt"]);
+  var totalCol = findHeaderCol_(sheet, ["tongtien", "tong_tien", "total"]);
+  var statusCol = findHeaderCol_(sheet, ["trangthai", "status"]);
+  if (timeCol < 0) timeCol = 0;
+  if (idCol < 0) idCol = 1;
+
+  var lines = [];
+  var count = 0;
+  var sum = 0;
+  for (var r = 0; r < data.length; r++) {
+    var cell = data[r][timeCol];
+    var d = cell instanceof Date ? cell : new Date(cell);
+    if (isNaN(d.getTime())) continue;
+    var rowDay = Utilities.formatDate(d, tz, "yyyy-MM-dd");
+    if (rowDay !== todayStr) continue;
+    count++;
+    var totalRaw = totalCol >= 0 ? data[r][totalCol] : "";
+    var totalNum = Number(String(totalRaw).replace(/[^\d]/g, ""));
+    if (isFinite(totalNum)) sum += totalNum;
+    lines.push(
+      "- " +
+        String(data[r][idCol] || "") +
+        " | " +
+        (nameCol >= 0 ? String(data[r][nameCol] || "") : "") +
+        " | " +
+        (phoneCol >= 0 ? String(data[r][phoneCol] || "") : "") +
+        " | " +
+        (statusCol >= 0 ? String(data[r][statusCol] || "Mới") : "") +
+        " | " +
+        String(totalRaw || "")
+    );
+  }
+  var body =
+    "Tom tat don " +
+    SHOP_NAME +
+    " — " +
+    Utilities.formatDate(today, tz, "dd/MM/yyyy") +
+    "\n\n" +
+    "So don: " +
+    count +
+    "\n" +
+    "Tong (uoc): " +
+    sum.toLocaleString("vi-VN") +
+    "d\n\n" +
+    (lines.length ? lines.join("\n") : "(Khong co don trong ngay)") +
+    "\n";
+  MailApp.sendEmail({
+    to: to,
+    subject: "[" + SHOP_NAME + "] Tom tat " + count + " don — " + Utilities.formatDate(today, tz, "dd/MM"),
+    body: body,
+  });
+}
+
+/** Tao trigger ~20:00 moi ngay (gio VN) */
+function createDailySummaryTrigger() {
+  removeDailySummaryTriggers();
+  ScriptApp.newTrigger("sendDailyOrderSummary")
+    .timeBased()
+    .atHour(20)
+    .everyDays(1)
+    .inTimezone("Asia/Ho_Chi_Minh")
+    .create();
+  SpreadsheetApp.getUi().alert("Da hen: moi ngay ~20:00 (gio VN) gui email tom tat don.");
+}
+
+function removeDailySummaryTriggers() {
+  var triggers = ScriptApp.getProjectTriggers();
+  for (var i = 0; i < triggers.length; i++) {
+    if (triggers[i].getHandlerFunction() === "sendDailyOrderSummary") {
+      ScriptApp.deleteTrigger(triggers[i]);
+    }
+  }
+}
+
+/** Quet ton kho + email neu can */
+function runStockCheckNow() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var productSheet = findProductSheet_(ss);
+  if (!productSheet) {
+    SpreadsheetApp.getUi().alert("Khong tim thay tab san pham (co cot ton_kho).");
+    return;
+  }
+  var alerts = scanLowStock_(productSheet);
+  if (!alerts.length) {
+    SpreadsheetApp.getUi().alert("Ton kho OK — khong co mon het/sap het.");
+    return;
+  }
+  sendStockAlertEmail_(alerts, "Kiem tra thu cong tu menu Sheet");
+  SpreadsheetApp.getUi().alert("Da gui email canh bao: " + alerts.length + " mon.");
 }
