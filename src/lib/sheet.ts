@@ -101,7 +101,6 @@ export type OrderPayload = {
   note: string;
   total: number;
   items: string;
-  /** JSON chi tiết để Apps Script trừ tồn */
   itemsJson: string;
   type: string;
   createdAt: string;
@@ -129,4 +128,58 @@ export const submitSheetOrder = createServerFn({ method: "POST" })
         error: err instanceof Error ? err.message : "Không ghi được đơn vào Sheet",
       };
     }
+  });
+
+export type OrdersLookupInput = {
+  sheetId?: string;
+  ordersSheetName?: string;
+  phone?: string;
+  limit?: number;
+};
+
+export type OrdersLookupResult = {
+  orders: import("./orders").ShopOrder[];
+  warning?: string;
+};
+
+export const lookupOrders = createServerFn({ method: "POST" })
+  .validator((input: OrdersLookupInput) => input)
+  .handler(async ({ data }): Promise<OrdersLookupResult> => {
+    const { ordersFromCsv, normalizePhone } = await import("./orders");
+    const id = data.sheetId?.trim();
+    if (!id) {
+      return { orders: [], warning: "Chưa cấu hình Sheet ID" };
+    }
+    const sheetName = encodeURIComponent(data.ordersSheetName?.trim() || "DonHang");
+    const urls = [
+      `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&sheet=${sheetName}`,
+      `https://docs.google.com/spreadsheets/d/${id}/export?format=csv&sheet=${sheetName}`,
+    ];
+    const errors: string[] = [];
+    for (const url of urls) {
+      try {
+        const text = await fetchText(url);
+        if (!isProbablyCsv(text)) {
+          errors.push("Không đọc được tab DonHang — kiểm tra chia sẻ Sheet.");
+          continue;
+        }
+        let orders = ordersFromCsv(text);
+        const phoneQ = data.phone?.trim();
+        if (phoneQ) {
+          const nq = normalizePhone(phoneQ);
+          if (nq.length < 9) {
+            return { orders: [], warning: "Số điện thoại chưa đủ" };
+          }
+          orders = orders.filter((o) => {
+            const op = normalizePhone(o.phone);
+            return op === nq || op.endsWith(nq.slice(-9)) || nq.endsWith(op.slice(-9));
+          });
+        }
+        const limit = data.limit && data.limit > 0 ? data.limit : phoneQ ? 20 : 30;
+        return { orders: orders.slice(0, limit) };
+      } catch (err) {
+        errors.push(err instanceof Error ? err.message : "Lỗi mạng");
+      }
+    }
+    return { orders: [], warning: errors[0] ?? "Không tải được đơn hàng" };
   });
