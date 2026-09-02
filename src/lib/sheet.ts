@@ -183,3 +183,43 @@ export const lookupOrders = createServerFn({ method: "POST" })
     }
     return { orders: [], warning: errors[0] ?? "Không tải được đơn hàng" };
   });
+
+export type UpdateOrderStatusInput = {
+  webhookUrl: string;
+  orderId: string;
+  status: string;
+};
+
+export const updateOrderStatus = createServerFn({ method: "POST" })
+  .validator((input: UpdateOrderStatusInput) => input)
+  .handler(async ({ data }): Promise<{ ok: boolean; error?: string }> => {
+    const webhookUrl = data.webhookUrl.trim();
+    if (!webhookUrl) return { ok: false, error: "Chưa cấu hình webhook" };
+    if (!data.orderId?.trim()) return { ok: false, error: "Thiếu mã đơn" };
+    try {
+      const res = await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "updateStatus",
+          orderId: data.orderId.trim(),
+          status: data.status.trim() || "Moi",
+        }),
+        redirect: "follow",
+      });
+      const text = await res.text();
+      try {
+        const json = JSON.parse(text) as { ok?: boolean; error?: string };
+        if (json.ok) return { ok: true };
+        return { ok: false, error: json.error || "Không cập nhật được trạng thái" };
+      } catch {
+        if (res.ok || text.includes("ok")) return { ok: true };
+        return { ok: false, error: `Sheet trả ${res.status}` };
+      }
+    } catch (err) {
+      return {
+        ok: false,
+        error: err instanceof Error ? err.message : "Không cập nhật được trạng thái",
+      };
+    }
+  });
