@@ -18,62 +18,56 @@ export type PrintOrderInput = {
   extraNote?: string;
 };
 
+export type DeliverySlipInput = {
+  orderId?: string;
+  time?: string;
+  name: string;
+  phone: string;
+  address: string;
+  items: string;
+  total?: string;
+  note?: string;
+};
+
 const FRAME_ID = "vcm-print-frame";
 
-/**
- * In / Lưu PDF qua iframe ẩn — không cần popup (tránh bị chặn).
- * Trong hộp thoại in của trình duyệt chọn "Lưu thành PDF" nếu muốn file.
- */
-export function printOrderEstimate(input: PrintOrderInput) {
+function printHtmlInFrame(html: string) {
   if (typeof document === "undefined") {
     return { ok: false as const, error: "Chỉ in được trên trình duyệt" };
   }
-  if (!input.lines.length) {
-    return { ok: false as const, error: "Chưa có món để in" };
-  }
-
-  const html = buildPrintHtml(input);
-
   let iframe = document.getElementById(FRAME_ID) as HTMLIFrameElement | null;
   if (!iframe) {
     iframe = document.createElement("iframe");
     iframe.id = FRAME_ID;
-    iframe.setAttribute("title", "In tạm tính");
+    iframe.setAttribute("title", "In");
     iframe.style.cssText =
       "position:fixed;right:0;bottom:0;width:0;height:0;border:0;opacity:0;pointer-events:none;";
     document.body.appendChild(iframe);
   }
-
   const win = iframe.contentWindow;
   const doc = iframe.contentDocument || win?.document;
   if (!win || !doc) {
     return { ok: false as const, error: "Không tạo được khung in" };
   }
-
   doc.open();
   doc.write(html);
   doc.close();
-
   const doPrint = () => {
     try {
       win.focus();
       win.print();
     } catch {
-      // ignore
+      /* ignore */
     }
   };
-
-  if (iframe.contentDocument?.readyState === "complete") {
-    setTimeout(doPrint, 100);
-  } else {
-    iframe.onload = () => setTimeout(doPrint, 100);
-    setTimeout(doPrint, 400);
-  }
-
+  setTimeout(doPrint, 150);
   return { ok: true as const };
 }
 
-function buildPrintHtml(input: PrintOrderInput) {
+export function printOrderEstimate(input: PrintOrderInput) {
+  if (!input.lines.length) {
+    return { ok: false as const, error: "Chưa có món để in" };
+  }
   const subtotal = cartTotal(input.lines);
   const ship = input.shippingFee ?? 0;
   const grand = subtotal + ship;
@@ -92,10 +86,8 @@ function buildPrintHtml(input: PrintOrderInput) {
       </tr>`;
     })
     .join("");
-
   const c = input.customer;
-
-  return `<!DOCTYPE html>
+  const html = `<!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="utf-8"/>
@@ -155,11 +147,58 @@ function buildPrintHtml(input: PrintOrderInput) {
       : ""
   }
   <p class="muted" style="margin-top:24px">
-    Đây là phiếu tạm tính — giá & tồn có thể đổi theo ngày. Xác nhận với ${escapeHtml(SHOP.owner)}:
-    Zalo/ĐT <strong>${escapeHtml(SHOP.phoneDisplay)}</strong>
+    Phiếu tạm tính — xác nhận với ${escapeHtml(SHOP.owner)}: Zalo/ĐT
+    <strong>${escapeHtml(SHOP.phoneDisplay)}</strong>
   </p>
 </body>
 </html>`;
+  return printHtmlInFrame(html);
+}
+
+export function printDeliverySlip(input: DeliverySlipInput) {
+  const when =
+    input.time ||
+    new Date().toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
+  const html = `<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"/>
+  <title>Phiếu giao ${escapeHtml(input.orderId || "")}</title>
+  <style>
+    @page { size: A5; margin: 10mm; }
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #111; margin: 0; padding: 12px; }
+    .slip { border: 2px solid #111; padding: 14px 16px; max-width: 420px; }
+    .shop { font-size: 11px; color: #444; text-transform: uppercase; letter-spacing: 0.04em; }
+    h1 { font-size: 18px; margin: 4px 0 8px; }
+    .row { margin: 6px 0; font-size: 14px; }
+    .label { color: #555; font-size: 11px; display: block; }
+    .big { font-size: 16px; font-weight: 700; }
+    .phone { font-size: 20px; font-weight: 700; letter-spacing: 0.02em; }
+    .items { margin-top: 10px; padding-top: 8px; border-top: 1px dashed #999; font-size: 13px; white-space: pre-wrap; word-break: break-word; }
+    .foot { margin-top: 14px; font-size: 11px; color: #555; display: flex; justify-content: space-between; gap: 8px; }
+    .box { margin-top: 12px; border: 1px solid #ccc; height: 48px; }
+  </style>
+</head>
+<body>
+  <div class="slip">
+    <div class="shop">${escapeHtml(SHOP.name)} · Phiếu giao</div>
+    <h1>${escapeHtml(input.orderId || "Đơn hàng")}</h1>
+    <div class="row"><span class="label">Thời gian</span>${escapeHtml(when)}</div>
+    <div class="row"><span class="label">Người nhận</span><span class="big">${escapeHtml(input.name || "—")}</span></div>
+    <div class="row"><span class="label">SĐT</span><span class="phone">${escapeHtml(input.phone || "—")}</span></div>
+    <div class="row"><span class="label">Địa chỉ giao</span>${escapeHtml(input.address || "—")}</div>
+    <div class="items"><span class="label">Món</span>${escapeHtml(input.items || "—")}</div>
+    ${input.total ? `<div class="row" style="margin-top:10px"><span class="label">Tổng</span><span class="big">${escapeHtml(input.total)}</span></div>` : ""}
+    ${input.note ? `<div class="row"><span class="label">Ghi chú</span>${escapeHtml(input.note)}</div>` : ""}
+    <div class="foot">
+      <span>Shop: ${escapeHtml(SHOP.phoneDisplay)}</span>
+      <span>Ký nhận</span>
+    </div>
+    <div class="box"></div>
+  </div>
+</body>
+</html>`;
+  return printHtmlInFrame(html);
 }
 
 function escapeHtml(s: string) {
