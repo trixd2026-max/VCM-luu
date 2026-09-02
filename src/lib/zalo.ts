@@ -7,7 +7,7 @@ export function buildOrderMessage(input: {
   orderId: string;
   name: string;
   phone: string;
-  address: string;
+  address?: string;
   note: string;
   lines: CartLine[];
   /** Phí ship (đồng), 0 nếu tự lấy / thỏa thuận */
@@ -70,4 +70,26 @@ export async function copyZaloMessage(text: string) {
 export async function copyAndOpenZalo(text: string) {
   openZalo();
   return copyZaloMessage(text);
+}
+
+/** Link Zalo chat theo SĐT khách (fallback Zalo shop) */
+export function customerZaloUrl(phone: string) {
+  const digits = phone.replace(/\D/g, "");
+  let n = digits;
+  if (n.startsWith("84") && n.length >= 10) n = "0" + n.slice(2);
+  if (n.length >= 9 && n.length <= 11) return `https://zalo.me/${n}`;
+  return SHOP.zalo;
+}
+
+export function customerTelUrl(phone: string) {
+  const digits = phone.replace(/\D/g, "");
+  let n = digits;
+  if (n.startsWith("84") && n.length >= 10) n = "0" + n.slice(2);
+  if (n.length >= 9) return `tel:${n}`;
+  return `tel:${SHOP.phone}`;
+}
+
+/** QR image URL (không cần lib thêm) */
+export function qrImageUrl(data: string, size = 160) {
+  return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(data)}`;
 }
