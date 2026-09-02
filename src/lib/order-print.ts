@@ -158,7 +158,6 @@ export function printOrderEstimate(input: PrintOrderInput) {
   return printHtmlInFrame(html);
 }
 
-/** Phiếu giao / tem — tối ưu đọc khi ship (A5) */
 export function printDeliverySlip(input: DeliverySlipInput) {
   const when =
     input.time ||
@@ -284,8 +283,9 @@ export function printDeliverySlip(input: DeliverySlipInput) {
       font-size: 12px;
       line-height: 1.4;
       color: #333;
-      background: #fff8e8;
-      border-left: 3px solid #c9a227;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-left: 3px solid #1c2e1c;
       padding: 6px 8px;
     }
     .signs {
@@ -386,8 +386,8 @@ export function printDeliverySlip(input: DeliverySlipInput) {
 
 function escapeHtml(s: string) {
   return s
-    .replace(/&/g, "&")
-    .replace(/</g, "<")
-    .replace(/>/g, ">")
-    .replace(/"/g, """);
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
