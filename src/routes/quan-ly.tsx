@@ -20,6 +20,7 @@ import {
   maskWebhookUrl,
   type ShopOrder,
 } from "@/lib/orders";
+import { printDeliverySlip } from "@/lib/order-print";
 
 export const Route = createFileRoute("/quan-ly")({ component: AdminPage });
 
@@ -298,6 +299,35 @@ function AdminPage() {
                   {o.items}
                 </p>
               ) : null}
+              {o.address ? (
+                <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
+                  {o.address}
+                </p>
+              ) : null}
+              <div className="mt-2 flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-8 text-xs"
+                  onClick={() => {
+                    const res = printDeliverySlip({
+                      orderId: o.orderId,
+                      time: o.time,
+                      name: o.name || "Khách",
+                      phone: o.phone,
+                      address: o.address,
+                      items: o.items,
+                      total: formatOrderTotal(o.total),
+                      note: o.note,
+                    });
+                    if (!res.ok) toast.error(res.error);
+                    else toast.message("Mở hộp thoại in phiếu giao");
+                  }}
+                >
+                  In phiếu giao
+                </Button>
+              </div>
             </li>
           ))}
         </ul>
