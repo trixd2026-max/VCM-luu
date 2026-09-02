@@ -1,7 +1,7 @@
 /*****************************************************************
  * Vuon Cua Mit - Webhook: don hang + tru ton + email
  *
- * - Ghi don vao tab DonHang
+ * - Ghi don vao tab DonHang (+ TrangThai)
  * - Tru ton_kho, cap nhat con_hang
  * - Gui email don moi + canh bao ton kho
  *
@@ -12,6 +12,27 @@ var ALERT_EMAIL = "trixd2026@gmail.com";
 var LOW_STOCK_THRESHOLD = 3;
 var SHOP_NAME = "Vuon Cua Mit";
 
+/** Them cot TrangThai neu sheet cu chua co */
+function ensureOrderStatusColumn_(sheet) {
+  var lastCol = sheet.getLastColumn();
+  if (lastCol < 1) {
+    sheet.appendRow([
+      "ThoiGian", "MaDon", "Ten", "DienThoai", "DiaChi",
+      "GhiChu", "TongTien", "ChiTiet", "Loai", "TrangThai"
+    ]);
+    return;
+  }
+  var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  var has = false;
+  for (var i = 0; i < headers.length; i++) {
+    var h = String(headers[i] || "").toLowerCase().replace(/\s+/g, "");
+    if (h === "trangthai" || h === "status") { has = true; break; }
+  }
+  if (!has) {
+    sheet.getRange(1, lastCol + 1).setValue("TrangThai");
+  }
+}
+
 function doPost(e) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var data = JSON.parse(e.postData.contents);
@@ -21,8 +42,10 @@ function doPost(e) {
     orders = ss.insertSheet("DonHang");
     orders.appendRow([
       "ThoiGian", "MaDon", "Ten", "DienThoai", "DiaChi",
-      "GhiChu", "TongTien", "ChiTiet", "Loai"
+      "GhiChu", "TongTien", "ChiTiet", "Loai", "TrangThai"
     ]);
+  } else {
+    ensureOrderStatusColumn_(orders);
   }
   orders.appendRow([
     new Date(),
@@ -33,7 +56,8 @@ function doPost(e) {
     data.note,
     data.total,
     data.items,
-    data.type
+    data.type,
+    data.status || "Moi"
   ]);
 
   var alerts = [];
@@ -91,6 +115,7 @@ function sendOrderEmail_(data) {
     (note ? "Ghi chu: " + note + "\n" : "") +
     "Mon: " + items + "\n" +
     "Tong: " + total + "\n" +
+    "Trang thai: Moi\n" +
     "-> Lien he khach / mo Sheet tab DonHang";
 
   MailApp.sendEmail({
