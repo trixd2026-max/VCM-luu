@@ -2,6 +2,7 @@ import { SHOP } from "./shop";
 import { formatVnd } from "./format";
 import type { CartLine } from "./cart";
 import { cartTotal } from "./cart";
+import { qrImageUrl } from "./zalo";
 
 export type PrintOrderInput = {
   title?: string;
@@ -169,6 +170,8 @@ export function printDeliverySlip(input: DeliverySlipInput) {
   const items = input.items || "—";
   const total = input.total || "";
   const note = input.note || "";
+  const zaloQr = qrImageUrl(SHOP.zalo, 96);
+  const phoneQr = qrImageUrl(`tel:${SHOP.phone}`, 96);
 
   const html = `<!DOCTYPE html>
 <html lang="vi">
@@ -310,6 +313,15 @@ export function printDeliverySlip(input: DeliverySlipInput) {
       gap: 8px;
       flex-wrap: wrap;
     }
+    .qr-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 10px;
+      align-items: flex-end;
+    }
+    .qr-box { text-align: center; }
+    .qr-box img { width: 72px; height: 72px; display: block; margin: 0 auto; }
+    .qr-box span { font-size: 9px; color: #5a6b5a; display: block; margin-top: 2px; }
     .badge {
       display: inline-block;
       font-size: 9px;
@@ -371,6 +383,16 @@ export function printDeliverySlip(input: DeliverySlipInput) {
         </div>
         <div class="sign">
           <div class="label">Người nhận ký</div>
+        </div>
+      </div>
+      <div class="qr-row">
+        <div class="qr-box">
+          <img src="${zaloQr}" alt="QR Zalo" width="72" height="72" />
+          <span>Zalo shop</span>
+        </div>
+        <div class="qr-box">
+          <img src="${phoneQr}" alt="QR gọi" width="72" height="72" />
+          <span>${escapeHtml(SHOP.phoneDisplay)}</span>
         </div>
       </div>
       <div class="foot">
