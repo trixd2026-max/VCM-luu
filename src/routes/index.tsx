@@ -19,23 +19,23 @@ function Home() {
     if (!loaded) void load();
   }, [loaded, load]);
 
-  const featuredFruit = products
-    .filter((p) => p.featured && (p.category === "trai-cay-vuon" || p.category === "trai-cay-nhap"))
-    .slice(0, 4);
-  const featuredGifts = products
-    .filter(
-      (p) =>
-        p.featured &&
-        (p.category === "gio-trai-cay" || p.category === "lang-hoa" || p.category === "trap-cuoi"),
-    )
-    .slice(0, 4);
-  const featured = [...featuredFruit, ...featuredGifts];
+  /** Ưu tiên cột Sheet noi_bat / featured = 1 → banner Hôm nay ngon */
+  const homNayNgon = useMemo(() => {
+    const marked = products.filter((p) => p.featured && p.inStock);
+    if (marked.length > 0) return marked.slice(0, 8);
+    return products
+      .filter(
+        (p) =>
+          p.inStock &&
+          (p.category === "trai-cay-vuon" || p.category === "trai-cay-nhap"),
+      )
+      .slice(0, 8);
+  }, [products]);
 
   const basketTiers = useMemo(() => getBasketTiers(products), [products]);
 
   return (
     <main>
-      {/* Banner */}
       <section className="relative bg-[#e7f4c4]">
         <div className="relative mx-auto max-w-6xl">
           <img
@@ -46,10 +46,8 @@ function Home() {
         </div>
       </section>
 
-      {/* Nút + trust — Flexbox tối ưu */}
       <section className="border-b border-border bg-card">
         <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:gap-5 sm:py-4">
-          {/* Nhóm nút: mobile full-width đều nhau, desktop gọn bên trái */}
           <div className="flex w-full shrink-0 gap-2 sm:w-auto">
             <Button
               asChild
@@ -74,7 +72,6 @@ function Home() {
             </Button>
           </div>
 
-          {/* Trust items: flex đều, min-w-0 tránh tràn chữ */}
           <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-start sm:gap-4">
             <TrustItem
               icon={Leaf}
@@ -98,21 +95,39 @@ function Home() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-16">
-        <div className="flex items-end justify-between gap-4">
-          <div>
-            <p className="text-xs tracking-wide text-muted-foreground uppercase">Đang có</p>
-            <h2 className="font-display mt-1 text-3xl">Đang bán chạy</h2>
+      <section className="mx-auto max-w-6xl px-4 py-14 sm:py-16">
+        <div className="overflow-hidden rounded-2xl border border-border bg-card">
+          <div className="flex flex-col gap-1 border-b border-border bg-primary/5 px-4 py-4 sm:flex-row sm:items-end sm:justify-between sm:px-6">
+            <div>
+              <p className="text-xs font-medium tracking-wide text-primary uppercase">
+                Theo mùa · từ vườn
+              </p>
+              <h2 className="font-display mt-1 text-3xl">Hôm nay ngon</h2>
+              <p className="mt-1 max-w-xl text-sm text-muted-foreground">
+                Món đánh dấu cột Sheet <code className="text-xs">noi_bat</code> — đổi theo
+                trái chín trong ngày.
+              </p>
+            </div>
+            <Link
+              to="/cua-hang"
+              className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-primary sm:mt-0"
+            >
+              Xem cửa hàng
+              <ArrowRight className="size-4" />
+            </Link>
           </div>
-          <Link to="/cua-hang" className="hidden items-center gap-1 text-sm sm:inline-flex">
-            Tất cả
-            <ArrowRight className="size-4" />
-          </Link>
-        </div>
-        <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 lg:grid-cols-4">
-          {featured.map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
+          {homNayNgon.length > 0 ? (
+            <div className="grid grid-cols-2 gap-x-4 gap-y-8 p-4 sm:p-6 md:grid-cols-3 lg:grid-cols-4">
+              {homNayNgon.map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
+          ) : (
+            <p className="px-4 py-10 text-center text-sm text-muted-foreground sm:px-6">
+              Chưa có sản phẩm nổi bật. Trên Sheet, cột <code>noi_bat</code> ghi{" "}
+              <code>1</code> cho món muốn hiện ở đây.
+            </p>
+          )}
         </div>
       </section>
 
@@ -156,7 +171,11 @@ function Home() {
       <section className="bg-primary text-primary-foreground">
         <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 lg:grid-cols-2">
           <div className="overflow-hidden rounded-2xl">
-            <img src="/products/mau-gio-trai-cay.jpg" alt="Mẫu giỏ trái cây" className="aspect-portrait w-full object-cover lg:aspect-wide" />
+            <img
+              src="/products/mau-gio-trai-cay.jpg"
+              alt="Mẫu giỏ trái cây"
+              className="aspect-portrait w-full object-cover lg:aspect-wide"
+            />
           </div>
           <div>
             <p className="text-xs tracking-[0.2em] uppercase opacity-70">Câu chuyện</p>
