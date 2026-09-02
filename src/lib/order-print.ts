@@ -18,8 +18,62 @@ export type PrintOrderInput = {
   extraNote?: string;
 };
 
-/** Mở cửa sổ in / Lưu PDF (trình duyệt) */
+const FRAME_ID = "vcm-print-frame";
+
+/**
+ * In / Lưu PDF qua iframe ẩn — không cần popup (tránh bị chặn).
+ * Trong hộp thoại in của trình duyệt chọn "Lưu thành PDF" nếu muốn file.
+ */
 export function printOrderEstimate(input: PrintOrderInput) {
+  if (typeof document === "undefined") {
+    return { ok: false as const, error: "Chỉ in được trên trình duyệt" };
+  }
+  if (!input.lines.length) {
+    return { ok: false as const, error: "Chưa có món để in" };
+  }
+
+  const html = buildPrintHtml(input);
+
+  let iframe = document.getElementById(FRAME_ID) as HTMLIFrameElement | null;
+  if (!iframe) {
+    iframe = document.createElement("iframe");
+    iframe.id = FRAME_ID;
+    iframe.setAttribute("title", "In tạm tính");
+    iframe.style.cssText =
+      "position:fixed;right:0;bottom:0;width:0;height:0;border:0;opacity:0;pointer-events:none;";
+    document.body.appendChild(iframe);
+  }
+
+  const win = iframe.contentWindow;
+  const doc = iframe.contentDocument || win?.document;
+  if (!win || !doc) {
+    return { ok: false as const, error: "Không tạo được khung in" };
+  }
+
+  doc.open();
+  doc.write(html);
+  doc.close();
+
+  const doPrint = () => {
+    try {
+      win.focus();
+      win.print();
+    } catch {
+      // ignore
+    }
+  };
+
+  if (iframe.contentDocument?.readyState === "complete") {
+    setTimeout(doPrint, 100);
+  } else {
+    iframe.onload = () => setTimeout(doPrint, 100);
+    setTimeout(doPrint, 400);
+  }
+
+  return { ok: true as const };
+}
+
+function buildPrintHtml(input: PrintOrderInput) {
   const subtotal = cartTotal(input.lines);
   const ship = input.shippingFee ?? 0;
   const grand = subtotal + ship;
@@ -40,7 +94,8 @@ export function printOrderEstimate(input: PrintOrderInput) {
     .join("");
 
   const c = input.customer;
-  const html = `<!DOCTYPE html>
+
+  return `<!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="utf-8"/>
@@ -53,10 +108,6 @@ export function printOrderEstimate(input: PrintOrderInput) {
     table { width: 100%; border-collapse: collapse; margin-top: 16px; }
     .totals td { padding: 6px 0; }
     .grand { font-size: 18px; font-weight: 700; }
-    @media print {
-      body { padding: 0; }
-      .no-print { display: none !important; }
-    }
   </style>
 </head>
 <body>
@@ -107,23 +158,8 @@ export function printOrderEstimate(input: PrintOrderInput) {
     Đây là phiếu tạm tính — giá & tồn có thể đổi theo ngày. Xác nhận với ${escapeHtml(SHOP.owner)}:
     Zalo/ĐT <strong>${escapeHtml(SHOP.phoneDisplay)}</strong>
   </p>
-  <p class="no-print muted" style="margin-top:20px">
-    <button onclick="window.print()" style="padding:10px 18px;font-size:14px;cursor:pointer;border-radius:8px;border:1px solid #ccc;background:#111;color:#fff">
-      In / Lưu PDF
-    </button>
-  </p>
-  <script>window.onload = function(){ setTimeout(function(){ window.print(); }, 250); };</script>
 </body>
 </html>`;
-
-  const w = window.open("", "_blank", "noopener,noreferrer,width=800,height=900");
-  if (!w) {
-    return { ok: false as const, error: "Trình duyệt chặn cửa sổ in — hãy cho phép popup" };
-  }
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
-  return { ok: true as const };
 }
 
 function escapeHtml(s: string) {
