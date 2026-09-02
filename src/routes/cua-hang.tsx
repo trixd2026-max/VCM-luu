@@ -13,6 +13,7 @@ type ShopSearch = { nhom?: string; q?: string };
 const PAGE_SIZE = 24;
 
 type PriceFilterId = "all" | "lt100" | "100-300" | "300-500" | "gte500";
+type SortId = "default" | "name-asc" | "price-asc" | "price-desc";
 
 const PRICE_FILTERS: {
   id: PriceFilterId;
@@ -56,6 +57,7 @@ function ShopPage() {
   const [query, setQuery] = useState(search.q ?? "");
   const nhom = (search.nhom as CategoryId | undefined) ?? undefined;
   const [priceId, setPriceId] = useState<PriceFilterId>("all");
+  const [sortId, setSortId] = useState<SortId>("default");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   useEffect(() => {
@@ -64,7 +66,7 @@ function ShopPage() {
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
-  }, [nhom, query, priceId]);
+  }, [nhom, query, priceId, sortId]);
 
   const inStock = useMemo(() => products.filter((p) => p.inStock), [products]);
 
@@ -96,10 +98,7 @@ function ShopPage() {
         m.set("all", baseForPrice.length);
         continue;
       }
-      m.set(
-        f.id,
-        baseForPrice.filter((p) => f.match(p.price)).length,
-      );
+      m.set(f.id, baseForPrice.filter((p) => f.match(p.price)).length);
     }
     return m;
   }, [baseForPrice]);
@@ -108,14 +107,23 @@ function ShopPage() {
     PRICE_FILTERS.find((f) => f.id === priceId)?.match ?? (() => true);
 
   const filtered = useMemo(() => {
-    return baseForPrice.filter((p) => priceMatch(p.price));
-  }, [baseForPrice, priceMatch]);
+    let list = baseForPrice.filter((p) => priceMatch(p.price));
+    if (sortId === "name-asc") {
+      list = [...list].sort((a, b) => a.name.localeCompare(b.name, "vi"));
+    } else if (sortId === "price-asc") {
+      list = [...list].sort((a, b) => a.price - b.price);
+    } else if (sortId === "price-desc") {
+      list = [...list].sort((a, b) => b.price - a.price);
+    }
+    return list;
+  }, [baseForPrice, priceMatch, sortId]);
 
   const visible = filtered.slice(0, visibleCount);
   const hasMore = visibleCount < filtered.length;
   const remaining = Math.max(0, filtered.length - visibleCount);
 
-  const hasActiveFilter = Boolean(nhom) || priceId !== "all" || query.trim() !== "";
+  const hasActiveFilter =
+    Boolean(nhom) || priceId !== "all" || query.trim() !== "" || sortId !== "default";
   const priceLabel = PRICE_FILTERS.find((f) => f.id === priceId)?.label;
   const nhomLabel = nhom
     ? CATEGORIES.find((c) => c.id === nhom)?.label ?? nhom
@@ -124,6 +132,7 @@ function ShopPage() {
   function clearFilters() {
     setQuery("");
     setPriceId("all");
+    setSortId("default");
     void navigate({ search: { nhom: undefined, q: undefined } });
   }
 
@@ -161,10 +170,7 @@ function ShopPage() {
         </div>
 
         <div className="mt-2 flex gap-1.5 overflow-x-auto py-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <Chip
-            active={!nhom}
-            onClick={() => navigate({ search: { nhom: undefined } })}
-          >
+          <Chip active={!nhom} onClick={() => navigate({ search: { nhom: undefined } })}>
             Tất cả
             <Count n={inStock.length} active={!nhom} />
           </Chip>
@@ -225,25 +231,37 @@ function ShopPage() {
         ) : null}
       </div>
 
-      <p className="mt-3 text-xs text-muted-foreground">
-        <span className="font-medium text-foreground">{filtered.length}</span> sản phẩm
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <label className="text-xs text-muted-foreground">Sắp xếp</label>
+        <select
+          className="h-9 rounded-full border border-border bg-card px-3 text-sm"
+          value={sortId}
+          onChange={(e) => setSortId(e.target.value as SortId)}
+        >
+          <option value="default">Mặc định</option>
+          <option value="name-asc">Tên A → Z</option>
+          <option value="price-asc">Giá thấp → cao</option>
+          <option value="price-desc">Giá cao → thấp</option>
+        </select>
+        <span className="text-xs text-muted-foreground">{filtered.length} sản phẩm</span>
+      </div>
+
+      <p className="mt-2 text-xs text-muted-foreground">
         {nhomLabel ? (
           <>
-            {" · "}
             <span className="text-foreground">{nhomLabel}</span>
+            {" · "}
           </>
         ) : null}
         {priceId !== "all" && priceLabel ? (
           <>
-            {" · "}
             <span className="text-foreground">{priceLabel}</span>
+            {" · "}
           </>
         ) : null}
         {query.trim() ? (
           <>
-            {" · “"}
-            <span className="text-foreground">{query.trim()}</span>
-            {'"'}
+            “<span className="text-foreground">{query.trim()}</span>”
           </>
         ) : null}
       </p>
