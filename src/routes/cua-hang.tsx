@@ -51,7 +51,6 @@ function ShopPage() {
   const navigate = Route.useNavigate();
   const products = useCatalog((s) => s.products);
   const warning = useCatalog((s) => s.warning);
-  const source = useCatalog((s) => s.source);
   const load = useCatalog((s) => s.load);
   const loaded = useCatalog((s) => s.loaded);
   const [query, setQuery] = useState(search.q ?? "");
@@ -143,9 +142,6 @@ function ShopPage() {
       <p className="mt-2 max-w-xl text-muted-foreground">
         Giá theo ngày. Đặt giỏ hoặc gọi chị Hằng để chọn trái đang ngon.
       </p>
-      {source === "sheet" ? (
-        <p className="mt-1 text-xs text-muted-foreground">Đồng bộ từ Google Sheet</p>
-      ) : null}
       {warning ? <p className="mt-1 text-xs text-amber-700">{warning}</p> : null}
 
       <div className="sticky top-14 z-20 -mx-4 mt-6 border-b border-border/70 bg-background/95 px-4 py-2.5 backdrop-blur supports-[backdrop-filter]:bg-background/85 md:top-16">
