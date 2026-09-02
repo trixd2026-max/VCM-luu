@@ -112,7 +112,7 @@ export type DeliverySlotId = (typeof DELIVERY_SLOTS)[number]["id"];
 export const DELIVERY_DAYS = [
   { id: "hom-nay", label: "Hôm nay" },
   { id: "ngay-mai", label: "Ngày mai" },
-  { id: "hen", label: "Hẹn ngày khác (ghi chú)" },
+  { id: "hen", label: "Chọn ngày trên lịch" },
 ] as const;
 
 export type DeliveryDayId = (typeof DELIVERY_DAYS)[number]["id"];
