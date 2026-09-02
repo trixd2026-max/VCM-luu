@@ -26,12 +26,13 @@ function OrderDonePage() {
     else toast.error("Không copy được — hãy chọn & copy thủ công bên dưới");
   }
 
-  async function handleCopyAndZalo() {
+  async function handleZaloConfirm() {
     if (!order) return;
     const ok = await copyZaloMessage(order.message);
     openZalo();
-    if (ok) toast.success("Đã copy — dán vào Zalo gửi chị Hằng");
-    else toast.message("Mở Zalo — copy tin bên dưới rồi dán");
+    if (ok)
+      toast.success("Đã copy tin — dán vào Zalo để xác nhận với " + SHOP.owner);
+    else toast.message("Mở Zalo — copy tin bên dưới rồi dán gửi shop");
   }
 
   if (!order) {
@@ -56,7 +57,8 @@ function OrderDonePage() {
         </span>
         <h1 className="font-display mt-4 text-3xl">Đã nhận yêu cầu đặt</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Gửi tin Zalo cho {SHOP.owner} để xác nhận nhanh (mã đơn, SĐT, tổng đã sẵn).
+          Trạng thái ban đầu: <strong className="text-foreground">Mới</strong>. Nhắn Zalo
+          để {SHOP.owner} xác nhận nhanh.
         </p>
       </div>
 
@@ -109,10 +111,18 @@ function OrderDonePage() {
       </div>
 
       <div className="mt-6 flex flex-col gap-2">
-        <Button type="button" size="lg" className="w-full gap-2" onClick={() => void handleCopyAndZalo()}>
+        <Button
+          type="button"
+          size="lg"
+          className="w-full gap-2"
+          onClick={() => void handleZaloConfirm()}
+        >
           <MessageCircle className="size-4" />
-          Copy tin & mở Zalo
+          Nhắn Zalo xác nhận
         </Button>
+        <p className="text-center text-xs text-muted-foreground">
+          Tin đã copy sẵn (mã đơn, SĐT, tổng) — chỉ cần dán gửi {SHOP.owner}
+        </p>
         <Button
           type="button"
           size="lg"

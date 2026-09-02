@@ -10,9 +10,47 @@ export type ShopOrder = {
   total: string;
   items: string;
   type: string;
+  /** Trạng thái: Mới | Đã xác nhận | Đang giao | Xong | Hủy */
+  status: string;
 };
 
-/** Chuẩn hóa SĐT VN để so khớp */
+export const ORDER_STATUSES = [
+  "Mới",
+  "Đã xác nhận",
+  "Đang giao",
+  "Xong",
+  "Hủy",
+] as const;
+
+export function normalizeOrderStatus(raw: string): string {
+  const s = (raw || "").trim();
+  if (!s) return "Mới";
+  const key = s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  if (key === "moi" || key === "new" || key === "pending") return "Mới";
+  if (key.includes("xac nhan") || key.includes("confirmed")) return "Đã xác nhận";
+  if (key.includes("dang giao") || key.includes("shipping") || key.includes("deliver"))
+    return "Đang giao";
+  if (key === "xong" || key === "done" || key === "completed" || key.includes("hoan thanh"))
+    return "Xong";
+  if (key === "huy" || key === "cancel" || key.includes("cancelled")) return "Hủy";
+  if ((ORDER_STATUSES as readonly string[]).includes(s)) return s;
+  return s;
+}
+
+export function orderStatusTone(
+  status: string,
+): "default" | "ok" | "warn" | "muted" | "danger" {
+  const s = normalizeOrderStatus(status);
+  if (s === "Xong") return "ok";
+  if (s === "Đang giao" || s === "Đã xác nhận") return "warn";
+  if (s === "Hủy") return "danger";
+  if (s === "Mới") return "default";
+  return "muted";
+}
+
 export function normalizePhone(raw: string): string {
   let s = raw.replace(/[^\d+]/g, "");
   if (s.startsWith("+84")) s = "0" + s.slice(3);
@@ -58,6 +96,10 @@ const COL_MAP: Record<string, keyof ShopOrder> = {
   items: "items",
   loai: "type",
   type: "type",
+  trangthai: "status",
+  trang_thai: "status",
+  status: "status",
+  state: "status",
 };
 
 export function ordersFromCsv(text: string): ShopOrder[] {
@@ -83,6 +125,7 @@ export function ordersFromCsv(text: string): ShopOrder[] {
       total: o.total ?? "",
       items: o.items ?? "",
       type: o.type ?? "",
+      status: normalizeOrderStatus(o.status ?? ""),
     });
   }
   return out.reverse();
