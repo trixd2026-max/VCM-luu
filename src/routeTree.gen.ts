@@ -17,6 +17,7 @@ import { Route as LienHeRouteImport } from './routes/lien-he'
 import { Route as QuanLyRouteImport } from './routes/quan-ly'
 import { Route as ThanhToanRouteImport } from './routes/thanh-toan'
 import { Route as TraCuuDonRouteImport } from './routes/tra-cuu-don'
+import { Route as DatXongRouteImport } from './routes/dat-xong'
 import { Route as TrapCuoiHoiRouteImport } from './routes/trap-cuoi-hoi'
 import { Route as SanPhamIdRouteImport } from './routes/san-pham.$id'
 
@@ -60,6 +61,11 @@ const TraCuuDonRoute = TraCuuDonRouteImport.update({
   path: '/tra-cuu-don',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DatXongRoute = DatXongRouteImport.update({
+  id: '/dat-xong',
+  path: '/dat-xong',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TrapCuoiHoiRoute = TrapCuoiHoiRouteImport.update({
   id: '/trap-cuoi-hoi',
   path: '/trap-cuoi-hoi',
@@ -80,6 +86,7 @@ export interface FileRoutesByFullPath {
   '/quan-ly': typeof QuanLyRoute
   '/thanh-toan': typeof ThanhToanRoute
   '/tra-cuu-don': typeof TraCuuDonRoute
+  '/dat-xong': typeof DatXongRoute
   '/trap-cuoi-hoi': typeof TrapCuoiHoiRoute
   '/san-pham/$id': typeof SanPhamIdRoute
 }
@@ -92,6 +99,7 @@ export interface FileRoutesByTo {
   '/quan-ly': typeof QuanLyRoute
   '/thanh-toan': typeof ThanhToanRoute
   '/tra-cuu-don': typeof TraCuuDonRoute
+  '/dat-xong': typeof DatXongRoute
   '/trap-cuoi-hoi': typeof TrapCuoiHoiRoute
   '/san-pham/$id': typeof SanPhamIdRoute
 }
@@ -105,6 +113,7 @@ export interface FileRoutesById {
   '/quan-ly': typeof QuanLyRoute
   '/thanh-toan': typeof ThanhToanRoute
   '/tra-cuu-don': typeof TraCuuDonRoute
+  '/dat-xong': typeof DatXongRoute
   '/trap-cuoi-hoi': typeof TrapCuoiHoiRoute
   '/san-pham/$id': typeof SanPhamIdRoute
 }
@@ -119,6 +128,7 @@ export interface FileRouteTypes {
     | '/quan-ly'
     | '/thanh-toan'
     | '/tra-cuu-don'
+    | '/dat-xong'
     | '/trap-cuoi-hoi'
     | '/san-pham/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -131,6 +141,7 @@ export interface FileRouteTypes {
     | '/quan-ly'
     | '/thanh-toan'
     | '/tra-cuu-don'
+    | '/dat-xong'
     | '/trap-cuoi-hoi'
     | '/san-pham/$id'
   id:
@@ -143,6 +154,7 @@ export interface FileRouteTypes {
     | '/quan-ly'
     | '/thanh-toan'
     | '/tra-cuu-don'
+    | '/dat-xong'
     | '/trap-cuoi-hoi'
     | '/san-pham/$id'
   fileRoutesById: FileRoutesById
@@ -156,6 +168,7 @@ export interface RootRouteChildren {
   QuanLyRoute: typeof QuanLyRoute
   ThanhToanRoute: typeof ThanhToanRoute
   TraCuuDonRoute: typeof TraCuuDonRoute
+  DatXongRoute: typeof DatXongRoute
   TrapCuoiHoiRoute: typeof TrapCuoiHoiRoute
   SanPhamIdRoute: typeof SanPhamIdRoute
 }
@@ -218,6 +231,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TraCuuDonRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dat-xong': {
+      id: '/dat-xong'
+      path: '/dat-xong'
+      fullPath: '/dat-xong'
+      preLoaderRoute: typeof DatXongRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/trap-cuoi-hoi': {
       id: '/trap-cuoi-hoi'
       path: '/trap-cuoi-hoi'
@@ -244,6 +264,7 @@ const rootRouteChildren: RootRouteChildren = {
   QuanLyRoute: QuanLyRoute,
   ThanhToanRoute: ThanhToanRoute,
   TraCuuDonRoute: TraCuuDonRoute,
+  DatXongRoute: DatXongRoute,
   TrapCuoiHoiRoute: TrapCuoiHoiRoute,
   SanPhamIdRoute: SanPhamIdRoute,
 }
