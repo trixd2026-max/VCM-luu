@@ -429,14 +429,14 @@ function AdminPage() {
           <Input
             value={sheetId}
             onChange={(e) => setSheetId(e.target.value)}
-            placeholder="1AbCDef..."
+            placeholder="1jsAZvVDgr-ju-WPi6izYcslKQA2DCvKLMnwMS14eam4"
           />
         </Field>
         <Field label="URL CSV xuất bản (để trống nếu dùng Sheet ID)">
           <Input
             value={csvUrl}
             onChange={(e) => setCsvUrl(e.target.value)}
-            placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?output=csv"
+            placeholder="https://docs.google.com/spreadsheets/d/1jsAZvVDgr-ju-WPi6izYcslKQA2DCvKLMnwMS14eam4/edit?gid=1069887904#gid=1069887904"
           />
         </Field>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -483,7 +483,7 @@ function AdminPage() {
             <Input
               value={webhookUrl}
               onChange={(e) => setWebhookUrl(e.target.value)}
-              placeholder="https://script.google.com/macros/s/.../exec"
+              placeholder="https://script.google.com/macros/s/AKfycbymBoq8HL50DTL1M231tGbhpacywp023OpJ3LiINjsw0rf9oxH8Ed5C918WEZ6IexZ_/exec"
               autoComplete="off"
             />
           ) : (
