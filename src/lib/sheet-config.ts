@@ -19,7 +19,7 @@ export type SheetConfig = {
  * https://script.google.com/u/0/home/projects/1LOfAA6goLw2Z04Xd-a9MeN7qR6vwRa4OPTzm8OD82kYOAALiu8hnN519/edit
  *
  * Webhook Web App (Deploy):
- * https://script.google.com/macros/s/AKfycbyehVvuXYNWTaTiCc9akyy5WUUvOimPdLvV-RXlMLesh42fAVyZpkI_Sl-atJ5q0Sf9yA/exec
+ * https://script.google.com/macros/s/AKfycbxixHl9DfZlcIUWFmfOC1lMMDVxtHMA_lpqSZraUqv9Q1PhDuaoS6MCwuAYx0iGonak/exec
  */
 const empty: SheetConfig = {
   sheetId: "1jsAZvVDgr-ju-WPi6izYcslKQA2DCvKLMnwMS14eam4",
@@ -27,7 +27,7 @@ const empty: SheetConfig = {
   gid: "1069887904",
   sheetName: "san-pham-vuon-cua-mit",
   webhookUrl:
-    "https://script.google.com/macros/s/AKfycbyehVvuXYNWTaTiCc9akyy5WUUvOimPdLvV-RXlMLesh42fAVyZpkI_Sl-atJ5q0Sf9yA/exec",
+    "https://script.google.com/macros/s/AKfycbxixHl9DfZlcIUWFmfOC1lMMDVxtHMA_lpqSZraUqv9Q1PhDuaoS6MCwuAYx0iGonak/exec",
   ordersSheetName: "DonHang",
 };
 
